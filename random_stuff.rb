@@ -30,4 +30,20 @@ module RandomStuff
         end end
       end
     end
+    
+    def self.arrys
+      for o in [(1..5), 'asdas', 123, {2=>4, 5=>6}, [1,6,0], nil] do
+        p o
+        begin p o.to_a
+        rescue NoMethodError => e
+          puts 'No #to_a'
+        end
+        begin p o.to_ary
+        rescue NoMethodError => e
+          puts 'No #to_ary'
+        end
+      end
+    end
 end
+
+RandomStuff::arrys
