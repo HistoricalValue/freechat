@@ -44,6 +44,24 @@ module RandomStuff
         end
       end
     end
+    
+    def self.paths?
+      meths=[]
+      for ancestor in ancestors do
+        meths += ancestor.instance_methods
+      end
+      meths += instance_methods
+      meths.sort!
+      p(meths.grep(/pa/))
+    end
+    
+    module Hihi
+      A_Const = '134'
+    end
+    def self.private_const
+      ms = Hihi.methods.sort
+      puts(ms.grep(/const/))
+    end
 end
 
-RandomStuff::arrys
+RandomStuff::private_const

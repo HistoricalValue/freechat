@@ -1,7 +1,4 @@
-require 'isi/freechat'
-
-require 'random_stuff'
-
-p Isi::FreeChat::Communicator::Communicator.create_address('128.123.120.119', 124)
+$isi = { :debug_hello => true, :debug_bye => true}
+require 'trunk/isi/freechat'
 
 puts "THE END"
