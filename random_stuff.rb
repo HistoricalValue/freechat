@@ -1,4 +1,7 @@
 module RandomStuff
+    $isi= {}
+    require 'trunk/isi/freechat'
+    
 	require 'socket'
 	def self.find_openssl_classes
 		result = []
@@ -62,6 +65,12 @@ module RandomStuff
       ms = Hihi.methods.sort
       puts(ms.grep(/const/))
     end
+    
+    def self.post_office_test
+      po = Isi::FreeChat::PostOffice::PostOffice.new
+      addr = Isi::FreeChat::PostOffice::Address.new '127.0.0.1', 12000
+      po.send_to(addr, 'deth')
+    end
 end
 
-RandomStuff::private_const
+RandomStuff::post_office_test

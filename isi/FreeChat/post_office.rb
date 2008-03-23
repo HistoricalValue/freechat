@@ -6,7 +6,7 @@ module Isi
       ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
       
       # require all files for this module
-      reqs = ['address']
+      reqs = ['address', 'post_office']
       for r in reqs do require ModuleRootDir + r end
       
       Isi::db_bye __FILE__, name
