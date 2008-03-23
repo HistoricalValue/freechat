@@ -5,4 +5,13 @@ module Isi
     def to_b; if self then true else false end end
   end
   
+  # saying hello and bye in module loading
+  def self.db_hello filename, modulename=nil
+    puts "#{filename} :: <#{modulename}> hello" if global_variables.include? :$isi and
+        $isi[:debug_hello]
+  end
+  def self.db_bye filename, modulename=nil
+    puts "#{filename} :: <#{modulename}> bye" if global_variables.include? :$isi and 
+        $isi[:debug_bye]
+  end
 end
