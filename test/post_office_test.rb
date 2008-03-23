@@ -1,5 +1,8 @@
 $:.unshift File.join(File.dirname(__FILE__),'..','lib')
-$isi = {} 
+$isi = {
+  :debug_hello => false,
+  :debug_bye => false,
+}
 require 'test/unit'
 require 'trunk/isi/freechat'
 require 'socket'
@@ -11,12 +14,13 @@ module Isi
       class PostOfficeTest < Test::Unit::TestCase
         
         def setup
-          @po = PostOffice.new
+          @my_addr = Address.new '127.0.0.1', 12000
+          @po = PostOffice.new @my_addr
           @addr = Address.new '127.0.0.1', 12000
         end
         
         def teardown
-          puts 'bye'
+          @po.close_down
         end
         
         def test_send_to

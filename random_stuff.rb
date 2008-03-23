@@ -67,10 +67,32 @@ module RandomStuff
     end
     
     def self.post_office_test
-      po = Isi::FreeChat::PostOffice::PostOffice.new
       addr = Isi::FreeChat::PostOffice::Address.new '127.0.0.1', 12000
+      po = Isi::FreeChat::PostOffice::PostOffice.new addr
+      sleep 5
       po.send_to(addr, 'deth')
+      po.close_down
+    end
+    
+    def self.lambdas
+      ps = [
+        lambda { |i| return i },
+        #Proc.new { |i| return i}
+      ]
+      for p in ps do begin
+        lanal(&p)
+        puts 'here'
+      rescue => e then
+        puts e
+      end end
+      #lanal { |i| return i}
+      lanal do |i| return i end
+      puts 'here'
+    end
+    
+    def self.lanal(&block)
+      puts "Analysing: #{block.inspect}"
+      block.call 1,2,3,4
     end
 end
-
 RandomStuff::post_office_test
