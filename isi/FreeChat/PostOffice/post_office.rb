@@ -9,9 +9,8 @@ module Isi
         require 'socket'
         require 'date'
         
-        def initialize buddy_book
+        def initialize
           @connections = {}
-          @buddy_book = buddy_book
         end
         
         # === Throws

@@ -2,6 +2,7 @@ $:.unshift File.join(File.dirname(__FILE__),'..','lib')
 $isi = {} 
 require 'test/unit'
 require 'trunk/isi/freechat'
+require 'socket'
 
 module Isi
   module FreeChat
@@ -20,6 +21,8 @@ module Isi
         
         def test_send_to
           @po.send_to(@addr, 'deth')
+        rescue  => e
+          flunk e.to_s
         end
         
         # def test_foo
