@@ -20,8 +20,14 @@ module Isi
         end
         
         def test_send_to
-          @po.send_to(@addr, 'deth')
+          @po.send_to(@addr, "deth re \ndeth ")
         rescue  => e
+          flunk e.to_s
+        end
+        
+        def test_reachable?
+          @po.reachable? @addr
+        rescue => e
           flunk e.to_s
         end
         

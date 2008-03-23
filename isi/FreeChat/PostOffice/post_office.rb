@@ -16,10 +16,18 @@ module Isi
         # === Throws
         # Errno::ECONNREFUSED
         def send_to addr, data
-          unless connection = @connections[addr] then
-            connection = (@connections[addr] = create_connection_data addr)
-          end
+          connection = get_connection addr
           connection.at(0).write data
+        end
+        
+        # Checks if an address is connectable
+        def reachable? addr
+          connection = get_connection addr
+          return (not connection.nil?)
+        rescue Errno::ECONNREFUSED
+          return false
+        rescue Errno::ETIMEDOUT
+          return false
         end
         
         private ################################################################
@@ -33,6 +41,13 @@ module Isi
         #   was used
         def create_connection_data addr
           [create_connection(addr), DateTime.now]
+        end
+        
+        def get_connection addr
+          unless connection = @connections[addr] then
+            connection = (@connections[addr] = create_connection_data addr)
+          end
+          return connection
         end
         
         Isi::db_bye __FILE__, name
