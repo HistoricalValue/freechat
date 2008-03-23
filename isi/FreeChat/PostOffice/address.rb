@@ -6,9 +6,12 @@ module Isi
         
         ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
         
+        require 'resolv'
+        
         def initialize ip=nil, port=nil
-          @ip = ip.to_s
           @port = port.to_i
+          # perform some normalization for ip
+          @ip = Resolv::IPv4::create(ip.to_s).to_s
         end
         attr_accessor :ip, :port
         
