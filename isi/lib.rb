@@ -39,6 +39,22 @@ module Isi
       end
       return result
     end
+    
+    # (to binary string)
+    # Returns a string representation of this Integer in binary format.
+    # Optional argument "prefix" specifies whether the result should be
+    # prefixed with "0b".
+    def to_bs prefix=true
+      "%#{'#' if prefix}b" % self
+    end
+    
+    # (to hexadecimal string)
+    # Returns a string representation of this Integer in hexadecimal format.
+    # Optional argument "prefix" specifies whether the result should be
+    # prefixed with "0x".
+    def to_hs prefix=true
+      "%#{'#' if prefix}x" % self
+    end
   end
 
 end
