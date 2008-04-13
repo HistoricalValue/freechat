@@ -64,7 +64,7 @@ module Isi
           @server_socket.listen 5
           @server_socket.do_not_reverse_lookup = true
           # Server Thread - servers an incoming connection
-          @server_lambda = lambda { |client|
+          @server_lambda = lambda { |client| begin
             @server_logger_mutex.synchronize {
               @server_logger.debug('server') {
                 "Welcome my frined, #{client} ..."
@@ -86,7 +86,7 @@ module Isi
                 "receiving message of length: #{length} ..."
               }
             }
-          }
+          rescue => e then @server_logger.error('server') {e.inspect}end}
           # Receiver Thread - listening for incoming connections
           @receiver_lambda = lambda {
             begin
