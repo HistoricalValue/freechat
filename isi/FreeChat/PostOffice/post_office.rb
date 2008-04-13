@@ -125,6 +125,7 @@ module Isi
         def send_to addr, data
           connection = get_connection addr
           connection.at(0).write data
+          connection[1] = DateTime.now
         end
         
         # Checks if an address is connectable
