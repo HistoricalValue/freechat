@@ -7,6 +7,7 @@ module Isi
         require 'pathname'
         require 'socket'
         require 'date'
+        require 'logger'
         
         include Socket::Constants
         
@@ -22,6 +23,12 @@ module Isi
         # * my_addr : An +Address+ object which indicates our address (to
         #   receive messages to)
         def initialize my_addr
+          # First, create my logger and use it
+          @logger = Logger.new STDERR
+          @logger.level = Logger::INFO
+          # Logger can only be used by calling +lock_logger+ method and
+          # passing a block which receives the logger as an argument
+          @logger_mutex = Mutex.new
           @connections = {}
           @connections_mutex = Mutex.new
           # Clearing Thread - check for idle connections and close them
@@ -52,7 +59,9 @@ module Isi
           # Server Thread - servers an incoming connection
           @server_lambda = lambda { |client|
             begin
-              puts "Welcome my frined, #{client} ..."
+              lock_logger {|l| l.debug('server') {
+                  "Welcome my frined, #{client} ..."
+              }}
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
             end
@@ -62,20 +71,20 @@ module Isi
             begin
               peer, peer_name = @server_socket.accept_nonblock
               peer.do_not_reverse_lookup = true
-              puts 'trying to make address'
+              lock_logger { |l| l.debug('receiver') {'trying to make address'}}
               peer_port, peer_ip = Socket.unpack_sockaddr_in peer_name
-              p peer_port, peer_ip
+              lock_logger { |l| l.debug('receiver') {"#{peer_port.inspect}\n#{peer_ip.inspect}"}}
               addr = Address.new peer_ip, peer_port
-              puts 'address made'
+              lock_logger { |l| l.debug('receiver') {'address made'}}
               lock_connections { |connections|
                 connections[addr] = peer
               }
-              p peer
+              lock_logger { |l| l.debug('receiver') {peer.inspect}}
               Thread.new(peer, &@server_lambda)
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
             rescue => e
-              puts "Something else@!! #{e.inspect}"
+              lock_logger { |l| l.warn {"Something else@!! #{e.inspect}"}}
             end while true
           }
           @receiver_thread = Thread.new(&@receiver_lambda)
@@ -86,8 +95,8 @@ module Isi
           @receiver_thread.kill
           @server_socket.close
           lock_connections { |connections|
-            connections.each { |addr, conn_pair| 
-              conn_pair.at(0).close
+            connections.each { |addr, conn| 
+              conn.close
             }
           }
         end
@@ -133,13 +142,20 @@ module Isi
         end
         
         def lock_connections
-          puts "connections lock taken by #{caller.first}"
-          @connections_mutex.synchronize {
-            yield @connections
-          }
-          puts "connectiosn lock left by #{caller.first}"
+          c = caller.first
+          lock_logger { |l| l.debug(c) {'connections lock taken' } }
+          @connections_mutex.synchronize { yield @connections }
+          lock_logger { |l| l.debug(c) { 'connections lock left' } }
         end
         
+        def lock_logger
+          @logger_mutex.synchronize {
+            c = caller.first
+            @logger.debug(c) { 'logger lock taken' }
+            yield @logger
+            @logger.debug(c) { 'logger lock left'  }
+          }
+        end
         Isi::db_bye __FILE__, name
       end
     end
