@@ -65,14 +65,27 @@ module Isi
           @server_socket.do_not_reverse_lookup = true
           # Server Thread - servers an incoming connection
           @server_lambda = lambda { |client|
+            @server_logger_mutex.synchronize {
+              @server_logger.debug('server') {
+                "Welcome my frined, #{client} ..."
+            }}
+            # Simple protocol: read 4 bytes which tell the length of the
+            # message and then read that many byte
+            buffer = []
             begin
-              @server_logger_mutex.synchronize {
-                @server_logger.debug('server') {
-                  "Welcome my frined, #{client} ..."
-              }}
+              IO.select([client])
+              p(buffer.concat(client.recvfrom_nonblock(4).at(0).bytes.to_a))
+              raise Errno::EAGAIN if buffer.length < 4
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
+              retry
             end
+            length = Integer::from_bytes(buffer[0..3])
+            @server_logger_mutex.synchronize {
+              @server_logger.debug('server') { 
+                "receiving message of length: #{length} ..."
+              }
+            }
           }
           # Receiver Thread - listening for incoming connections
           @receiver_lambda = lambda {

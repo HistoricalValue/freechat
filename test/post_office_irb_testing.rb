@@ -19,3 +19,14 @@ end
 def c
   $s = TCPSocket.new $st[:addr].ip, $st[:addr].port
 end
+
+def len; "\x0a\x00\x00\x00enadyotria" end
+def w;
+  $s.write len[0..0]
+  sleep 2
+  $s.write len[1..2]
+  sleep 2
+  $s.write len[3..5]
+  sleep 2
+end
+
