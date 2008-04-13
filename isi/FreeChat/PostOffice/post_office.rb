@@ -29,6 +29,13 @@ module Isi
           # Logger can only be used by calling +lock_logger+ method and
           # passing a block which receives the logger as an argument
           @logger_mutex = Mutex.new
+          # More specific loggers
+          @receiver_logger = Logger.new STDERR
+          @receiver_logger.level = Logger::DEBUG
+          @server_logger = Logger.new STDERR
+          @server_logger.level = Logger::DEBUG
+          @server_logger_mutex = Mutex.new
+          
           @connections = {}
           @connections_mutex = Mutex.new
           # Clearing Thread - check for idle connections and close them
@@ -59,7 +66,8 @@ module Isi
           # Server Thread - servers an incoming connection
           @server_lambda = lambda { |client|
             begin
-              lock_logger {|l| l.debug('server') {
+              @server_logger_mutex.synchronize {
+                @server_logger.debug('server') {
                   "Welcome my frined, #{client} ..."
               }}
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
@@ -71,20 +79,20 @@ module Isi
             begin
               peer, peer_name = @server_socket.accept_nonblock
               peer.do_not_reverse_lookup = true
-              lock_logger { |l| l.debug('receiver') {'trying to make address'}}
+              @receiver_logger.debug('receiver') {'trying to make address'}
               peer_port, peer_ip = Socket.unpack_sockaddr_in peer_name
-              lock_logger { |l| l.debug('receiver') {"#{peer_port.inspect}\n#{peer_ip.inspect}"}}
+              @receiver_logger.debug('receiver') {"#{peer_port.inspect}\n#{peer_ip.inspect}"}
               addr = Address.new peer_ip, peer_port
-              lock_logger { |l| l.debug('receiver') {'address made'}}
+              @receiver_logger.debug('receiver') {'address made'}
               lock_connections { |connections|
                 connections[addr] = peer
               }
-              lock_logger { |l| l.debug('receiver') {peer.inspect}}
+              @receiver_logger.debug('receiver') {peer.inspect}
               Thread.new(peer, &@server_lambda)
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
             rescue => e
-              lock_logger { |l| l.warn {"Something else@!! #{e.inspect}"}}
+              @receiver_logger.warn {"Something else@!! #{e.inspect}"}
             end while true
           }
           @receiver_thread = Thread.new(&@receiver_lambda)
