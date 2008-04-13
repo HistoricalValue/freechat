@@ -56,5 +56,11 @@ module Isi
       "%#{'#' if prefix}x" % self
     end
   end
-
+  
+  class ::Array
+    # Empty an array as by <code>a[0..a.length] = []</code>
+    def empty!
+      self[0..length] = []
+    end
+  end
 end

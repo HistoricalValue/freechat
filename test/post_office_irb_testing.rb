@@ -29,4 +29,10 @@ def w;
   $s.write len[3..5]
   sleep 2
 end
+def w_; $s.write len[5..len.length] end
+
+def ww; $s.write len end
+
+
+
 

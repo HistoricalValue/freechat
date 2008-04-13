@@ -10,7 +10,7 @@ module Isi
         require 'logger'
         
         include Socket::Constants
-        
+
         ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
         
         Cleaner_thread_check_period = 30 # sec
@@ -65,28 +65,26 @@ module Isi
           @server_socket.do_not_reverse_lookup = true
           # Server Thread - servers an incoming connection
           @server_lambda = lambda { |client| begin
-            @server_logger_mutex.synchronize {
-              @server_logger.debug('server') {
-                "Welcome my frined, #{client} ..."
-            }}
             # Simple protocol: read 4 bytes which tell the length of the
             # message and then read that many byte
             buffer = []
-            begin
-              IO.select([client])
-              p(buffer.concat(client.recvfrom_nonblock(4).at(0).bytes.to_a))
-              raise Errno::EAGAIN if buffer.length < 4
-            rescue Errno::EAGAIN, Errno::EWOULDBLOCK
-              sleep Server_sleeping_period
-              retry
-            end
+            recv client, 4, buffer
             length = Integer::from_bytes(buffer[0..3])
             @server_logger_mutex.synchronize {
               @server_logger.debug('server') { 
                 "receiving message of length: #{length} ..."
               }
             }
-          rescue => e then @server_logger.error('server') {e.inspect}end}
+            buffer[0..3] = []
+            recv client, length, buffer
+            @server_logger_mutex.synchronize {
+              @server_logger.debug('server') {
+                "received message: #{buffer}"
+              }
+            }
+          rescue => e then @server_logger.error('server'){e.inspect}
+          end while not client.closed?
+          }
           # Receiver Thread - listening for incoming connections
           @receiver_lambda = lambda {
             begin
@@ -177,6 +175,23 @@ module Isi
             @logger.debug(c) { 'logger lock left'  }
           }
         end
+        
+        # Reads from +sockin+ (which must be a +Socket+)
+        # +len+ number of bytes without blocking,
+        # sleeping +Server_sleeping_period+ whenever it has to.
+        # Result is stored in +buffer+ by method 'concat'
+        # and +buffer+ is returned.
+        #
+        # Note that buffer might contain much more than +len+ bytes,
+        # if there are more bytes available in the socket stream.
+        def recv sockin, len, buffer=[]
+          buffer.concat(sockin.recvfrom_nonblock(len).at(0).bytes.to_a)
+          raise Errno::EAGAIN if buffer.length < len
+        rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+          sleep Server_sleeping_period
+          retry
+        end
+        
         Isi::db_bye __FILE__, name
       end
     end
