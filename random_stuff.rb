@@ -67,10 +67,11 @@ module RandomStuff
     end
     
     def self.post_office_test
-      addr = Isi::FreeChat::PostOffice::Address.new '127.0.0.1', 12000
+      addr = Isi::FreeChat::PostOffice::Address.new '127.0.0.1', 12001
+      addr2 = Isi::FreeChat::PostOffice::Address.new '127.0.0.1', 12000
       po = Isi::FreeChat::PostOffice::PostOffice.new addr
-      sleep 5
-      po.send_to(addr, 'deth')
+      po.send_to(addr2, 'deth')
+      sleep 30
       po.close_down
     end
     
