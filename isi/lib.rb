@@ -29,6 +29,7 @@ module Isi
     end
 
     # Creates a new Integer from the given byte array.
+    # The argument *must* be an array.
     # bytes.first must be LSB and bytes.last MSB.
     # Throws an ArgumentError for an empty array.
     def self.from_bytes bytes=[0]

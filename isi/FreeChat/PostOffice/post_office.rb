@@ -60,22 +60,24 @@ module Isi
           @server_socket.listen 5
           @server_socket.do_not_reverse_lookup = true
           # Server Thread - servers an incoming connection
-          @server_lambda = lambda { |client| begin
+          @server_lambda = lambda { |client|
+            buffer = ''.encode('utf-8')
+            begin
             # Simple protocol: read 4 bytes which tell the length of the
             # message and then read that many byte
-            buffer = []
+            buffer.clear
             recv client, 4, buffer
-            length = Integer::from_bytes(buffer[0..3])
+            length = Integer::from_bytes(buffer[0..3].bytes.to_a)
             @server_logger.debug('server') { 
               "receiving message of length: #{length} ..."
             }
             
-            buffer[0..3] = []
+            buffer[0..3] = ''
             recv client, length, buffer
             @server_logger.debug('server') {
               "received message: #{buffer}"
             }
-          rescue => e then @server_logger.error('server'){e.inspect}
+          rescue => e then @server_logger.error('server'){e}
           end while not client.closed?
           }
           # Receiver Thread - listening for incoming connections
@@ -169,7 +171,7 @@ module Isi
         # Note that buffer might contain much more than +len+ bytes,
         # if there are more bytes available in the socket stream.
         def recv sockin, len, buffer=[]
-          buffer.concat(sockin.recvfrom_nonblock(len).at(0).bytes.to_a)
+          buffer.concat(sockin.recvfrom_nonblock(len).at(0))
           raise Errno::EAGAIN if buffer.length < len
         rescue Errno::EAGAIN, Errno::EWOULDBLOCK
           sleep Server_sleeping_period
