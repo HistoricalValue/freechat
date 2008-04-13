@@ -12,8 +12,10 @@ def start port=12000, port2=port+1
     :addr  => mya,
     :po    => PostOffice.new(mya),
     :addr2 => otha,
-    :po2   => PostOffice.new(otha)
+    :po2   => PostOffice.new(otha,[MR.new])
   }
+  $st[:po2].add_message_receiver MR2.new
+  return $st
 end
 
 def bye
@@ -43,4 +45,14 @@ def talk
   $st[:po].send_to($st[:addr2], len)
 end
 
+class MR 
+  def message_received addr, str
+    puts "<#{addr}> :: #{str}"
+  end
+end
 
+class MR2 < MR
+  def message_received addr, str
+    puts "#{addr.port} :: #{str} :: #{addr.ip}"
+  end
+end

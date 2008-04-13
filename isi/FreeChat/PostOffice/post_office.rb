@@ -22,18 +22,27 @@ module Isi
         # === Arguments
         # * my_addr : An +Address+ object which indicates our address (to
         #   receive messages to)
-        def initialize my_addr
+        # * message_receivers : objects which will be notified when a
+        #   packet is received. They must respond_to 'message_received'.
+        #   When a message is received that method is called with two
+        #   arguments: an Address object, indicating from which address
+        #   this packet arrived, and a String containing the binary data
+        #   of the packet.
+        def initialize my_addr, message_receivers=[]
           # First, create my logger and use it
           @logger = Logger.new STDERR
           @logger.level = Logger::INFO
           # More specific loggers
           @receiver_logger = Logger.new STDERR
-          @receiver_logger.level = Logger::DEBUG
+          @receiver_logger.level = Logger::WARN
           @server_logger = Logger.new STDERR
-          @server_logger.level = Logger::DEBUG
+          @server_logger.level = Logger::WARN
           
           @connections = {}
           @connections_mutex = Mutex.new
+          # Message receivers, must have method 'message_received'
+          @message_receivers = message_receivers
+          @message_receivers_mutex = Mutex.new
           # Clearing Thread - check for idle connections and close them
           @cleaner_lambda = lambda {
             to_remove = []
@@ -60,23 +69,32 @@ module Isi
           @server_socket.listen 5
           @server_socket.do_not_reverse_lookup = true
           # Server Thread - servers an incoming connection
-          @server_lambda = lambda { |client|
+          @server_lambda = lambda { |client, addr|
             buffer = ''.encode('utf-8')
             begin
             # Simple protocol: read 4 bytes which tell the length of the
             # message and then read that many byte
-            buffer.clear
             recv client, 4, buffer
             length = Integer::from_bytes(buffer[0..3].bytes.to_a)
             @server_logger.debug('server') { 
               "receiving message of length: #{length} ..."
             }
+            # ignore if length is 0
+            raise 'Length <= 0' if length <= 0
             
             buffer[0..3] = ''
             recv client, length, buffer
+            message = buffer[0..length-1]
+            buffer[0..length-1] = ''
             @server_logger.debug('server') {
-              "received message: #{buffer}"
+              "received message: #{message}"
             }
+            @message_receivers_mutex.synchronize {
+              for mr in @message_receivers do
+                mr.message_received addr, message
+              end
+            }
+            @server_logger.debug('server') { 'forwarded to MRs' }
           rescue => e then @server_logger.error('server'){e}
           end while not client.closed?
           }
@@ -90,7 +108,7 @@ module Isi
               lock_connections { |connections|
                 connections[addr] = [peer, DateTime.now]
               }
-              Thread.new(peer, &@server_lambda)
+              Thread.new(peer, addr, &@server_lambda)
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
             rescue => e
@@ -127,6 +145,24 @@ module Isi
           return false
         rescue Errno::ETIMEDOUT
           return false
+        end
+        
+        # Add's the specified message receiver to the list of receivers
+        # who will get notified when a packet arrives. The receiver must
+        # respond_to method 'message_received'. This method will be called
+        # when a packet is received with the following arguments:
+        # * An Address object indicating from which Address this packet arrived
+        # * A String containing the binary data of the packet
+        def add_message_receiver rcvr
+          @message_receivers << rcvr
+          return nil
+        end
+        # Removes the specified receiver from the list  of receivers which
+        # get notified when a packet arrives. Comparison is done by method
+        # '=='.
+        def remove_message_receiver rcvr
+          @message_receivers.reject! { |mr| mr == rcvr }
+          return nil
         end
         
         private ################################################################

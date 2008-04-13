@@ -15,6 +15,10 @@ module Isi
         end
         attr_accessor :ip, :port
         
+        def to_s
+          "#{ip}:#{port}"
+        end
+        
         Isi::db_bye __FILE__, name
       end
     end
