@@ -26,15 +26,11 @@ module Isi
           # First, create my logger and use it
           @logger = Logger.new STDERR
           @logger.level = Logger::INFO
-          # Logger can only be used by calling +lock_logger+ method and
-          # passing a block which receives the logger as an argument
-          @logger_mutex = Mutex.new
           # More specific loggers
           @receiver_logger = Logger.new STDERR
           @receiver_logger.level = Logger::DEBUG
           @server_logger = Logger.new STDERR
           @server_logger.level = Logger::DEBUG
-          @server_logger_mutex = Mutex.new
           
           @connections = {}
           @connections_mutex = Mutex.new
@@ -70,17 +66,14 @@ module Isi
             buffer = []
             recv client, 4, buffer
             length = Integer::from_bytes(buffer[0..3])
-            @server_logger_mutex.synchronize {
-              @server_logger.debug('server') { 
-                "receiving message of length: #{length} ..."
-              }
+            @server_logger.debug('server') { 
+              "receiving message of length: #{length} ..."
             }
+            
             buffer[0..3] = []
             recv client, length, buffer
-            @server_logger_mutex.synchronize {
-              @server_logger.debug('server') {
-                "received message: #{buffer}"
-              }
+            @server_logger.debug('server') {
+              "received message: #{buffer}"
             }
           rescue => e then @server_logger.error('server'){e.inspect}
           end while not client.closed?
@@ -90,15 +83,11 @@ module Isi
             begin
               peer, peer_name = @server_socket.accept_nonblock
               peer.do_not_reverse_lookup = true
-              @receiver_logger.debug('receiver') {'trying to make address'}
               peer_port, peer_ip = Socket.unpack_sockaddr_in peer_name
-              @receiver_logger.debug('receiver') {"#{peer_port.inspect}\n#{peer_ip.inspect}"}
               addr = Address.new peer_ip, peer_port
-              @receiver_logger.debug('receiver') {'address made'}
               lock_connections { |connections|
-                connections[addr] = peer
+                connections[addr] = [peer, DateTime.now]
               }
-              @receiver_logger.debug('receiver') {peer.inspect}
               Thread.new(peer, &@server_lambda)
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
               sleep Server_sleeping_period
@@ -114,8 +103,8 @@ module Isi
           @receiver_thread.kill
           @server_socket.close
           lock_connections { |connections|
-            connections.each { |addr, conn| 
-              conn.close
+            connections.each { |addr, conn_pair| 
+              conn_pair.at(0).close
             }
           }
         end
@@ -143,7 +132,8 @@ module Isi
           return TCPSocket.new(addr.ip, addr.port)
         end
         
-        # Creates _new_ connection data. That is an array in which:
+        # Creates _new_ connection data (AND NEW CONNECTION).
+        # That is an array in which:
         # * at(0) is a TCPSocket connected to addr
         # * at(1) is a DateTime object for the last time this connection
         #   was used
@@ -151,6 +141,8 @@ module Isi
           [create_connection(addr), DateTime.now]
         end
         
+        # If connection exists, it returns it. If it does not, it creates it
+        # and then returns it.
         def get_connection addr
           connection = nil
           lock_connections { |connections|
@@ -163,18 +155,9 @@ module Isi
         
         def lock_connections
           c = caller.first
-          lock_logger { |l| l.debug(c) {'connections lock taken' } }
+          @logger.debug(c) {'connections lock taken' }
           @connections_mutex.synchronize { yield @connections }
-          lock_logger { |l| l.debug(c) { 'connections lock left' } }
-        end
-        
-        def lock_logger
-          @logger_mutex.synchronize {
-            c = caller.first
-            @logger.debug(c) { 'logger lock taken' }
-            yield @logger
-            @logger.debug(c) { 'logger lock left'  }
-          }
+          @logger.debug(c) { 'connections lock left' }
         end
         
         # Reads from +sockin+ (which must be a +Socket+)
