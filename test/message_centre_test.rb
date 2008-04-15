@@ -11,7 +11,8 @@ module Isi
       module MessageCentre
         class MessageCentreTest < Test::Unit::TestCase
           def setup
-            @mc = MessageCentre.new
+            @ab = Isi::FreeChat::BuddyBook::BuddyBook.new
+            @mc = MessageCentre.new @ab
             @failure_key = 123
           end
           

@@ -13,12 +13,14 @@ module Isi
           # Constructs a new message centre.
           #
           # === Arguments
+          # * buddybk: buddy book, used to look up addresses
           # * id_seed: used in generating message IDs which are hopefully
           #            spatially and timely unique. It is not used directly
           #            in the ID generation, but it is first digested with
           #            an 512bit SHA2 digester
-          def initialize id_seed = ((rand+rand+rand).to_s + DateTime.now.to_s).
-            crypt('f6')
+          def initialize buddybk,
+            id_seed = ((rand+rand+rand).to_s + DateTime.now.to_s).crypt('f6')
+            @addrbook = buddybk
             @digester = Digest::SHA2.new 512
             # id_seed is used in generating message IDs which are hopefully
             # spatially and timely unique
@@ -105,12 +107,37 @@ module Isi
           # Read +failure+ for more info.
           #
           # === Argument
-          # * msg: A message of the appropriate class
+          # * msg      : A message of the appropriate class
           # * register?: if given as false the message will be send but not
           #              recorded in any records. Effectively, any subsequent
           #              calls to +success+ of +fails+ for this message will be
-          #              meaningless (and erroneous).
+          #              meaningless (and erroneous). +send_message+ and
+          #              +forward_message+ with <code>register?=false</code>
+          #              are equivalent.
           def send_message msg, register = true
+            # TODO implement
+          end
+          
+          # Forwards a message.
+          #
+          # Uses the linker in order to find the appropriate BCG buddy
+          # and the address book in order to find an address for that buddy.
+          #
+          # The message is considered forwarded and therefor is recorded
+          # in the forwarded messages record, until a successful delivery
+          # notification arrives. When this happens, the message centre can be notified
+          # by +success+, in which case the message is removed from all records
+          # (expired).
+          # 
+          # === Argument
+          # * msg      : A message of the appropriate class
+          # * register?: if given as false the message will be send but not
+          #              recorded in any records. Effectively, any subsequent
+          #              calls to +success+ of +fails+ for this message will be
+          #              meaningless (and erroneous). +send_message+ and
+          #              +forward_message+ with <code>register?=false</code>
+          #              are equivalent.
+          def forward_message msg, register=true
             # TODO implement
           end
           
