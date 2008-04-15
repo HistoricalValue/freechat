@@ -161,6 +161,12 @@ module Isi
             @forwarded[mid]
           end
           
+          private ##############################################################
+          def createID seed=nil
+            seed = seed ? @digester.digest(seed + @id_seed) : @id_seed
+            return @id_seed = @digester.digest(seed + DateTime.now.to_s)
+          end
+          
           Isi::db_bye __FILE__, name
         end
       end
