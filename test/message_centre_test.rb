@@ -16,12 +16,6 @@ module Isi
             @failure_key = 123
           end
           
-          def test_prelim
-            @mc.failure @failure_key
-            fs = @mc.instance_variable_get(:@failures)
-            assert(fs.has_key?(@failure_key))
-          end
-          
           def test_createID
             results = (1..100).to_a.map {
               @mc.send :createID
