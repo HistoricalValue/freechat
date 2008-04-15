@@ -5,11 +5,24 @@ module Isi
         class MessageCentre
           Isi::db_hello __FILE__, name
 
+          require 'digest/sha2'
           require 'logger'
           
           ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
 
-          def initialize
+          # Constructs a new message centre.
+          #
+          # === Arguments
+          # * id_seed: used in generating message IDs which are hopefully
+          #            spatially and timely unique. It is not used directly
+          #            in the ID generation, but it is first digested with
+          #            an 512bit SHA2 digester
+          def initialize id_seed = ((rand+rand+rand).to_s + DateTime.now.to_s).
+            crypt('f6')
+            @digester = Digest::SHA2.new 512
+            # id_seed is used in generating message IDs which are hopefully
+            # spatially and timely unique
+            @id_seed = @digester.digest id_seed
             # Stores pairs of MID-BID, where BID is the medium buddy.
             # Message whose MIDs are stored here are considered pending
             # until a delivery report for them arrives. *ONLY* messages
@@ -98,7 +111,7 @@ module Isi
           #              calls to +success+ of +fails+ for this message will be
           #              meaningless (and erroneous).
           def send_message msg, register = true
-            
+            # TODO implement
           end
           
           Isi::db_bye __FILE__, name
