@@ -14,9 +14,9 @@ module Isi
           #
           # === Arguments
           # * buddybk: buddy book, used to look up addresses
-          # * id_seed: used in generating message IDs which are hopefully
-          #            spatially and timely unique. It is not used directly
-          #            in the ID generation, but it is first digested with
+          # * id_seed: used in generating message IDs which are hopefully\
+          #            spatially and timely unique. It is not used directly\
+          #            in the ID generation, but it is first digested with\
           #            an 512bit SHA2 digester
           def initialize buddybk,
             id_seed = ((rand+rand+rand).to_s + DateTime.now.to_s).crypt('f6')
@@ -108,11 +108,11 @@ module Isi
           #
           # === Argument
           # * msg      : A message of the appropriate class
-          # * register?: if given as false the message will be send but not
-          #              recorded in any records. Effectively, any subsequent
-          #              calls to +success+ of +fails+ for this message will be
-          #              meaningless (and erroneous). +send_message+ and
-          #              +forward_message+ with <code>register?=false</code>
+          # * register?: if given as false the message will be send but not\
+          #              recorded in any records. Effectively, any subsequent\
+          #              calls to +success+ of +fails+ for this message will be\
+          #              meaningless (and erroneous). +send_message+ and\
+          #              +forward_message+ with <code>register?=false</code>\
           #              are equivalent.
           def send_message msg, register = true
             # TODO implement
@@ -131,11 +131,11 @@ module Isi
           # 
           # === Argument
           # * msg      : A message of the appropriate class
-          # * register?: if given as false the message will be send but not
-          #              recorded in any records. Effectively, any subsequent
-          #              calls to +success+ of +fails+ for this message will be
-          #              meaningless (and erroneous). +send_message+ and
-          #              +forward_message+ with <code>register?=false</code>
+          # * register?: if given as false the message will be send but not\
+          #              recorded in any records. Effectively, any subsequent\
+          #              calls to +success+ of +fails+ for this message will be\
+          #              meaningless (and erroneous). +send_message+ and\
+          #              +forward_message+ with <code>register?=false</code>\
           #              are equivalent.
           def forward_message msg, register=true
             # TODO implement
