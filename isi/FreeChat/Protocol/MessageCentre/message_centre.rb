@@ -5,6 +5,8 @@ module Isi
         class MessageCentre
           Isi::db_hello __FILE__, name
 
+          require 'logger'
+          
           ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
 
           def initialize
@@ -20,7 +22,14 @@ module Isi
             # * Origin BID: the buddy from which this message arrived
             # * MID: the message id
             # * BuddyCloudGateID: the buddy through which it is forwarded
-            @forwared = {}
+            @forwarded = {}
+            # Stores message delivery failure records. Index is a MID and
+            # mapped object is an Array of failure records.
+            @failures = {}
+            
+            # Loggar
+            @logger = Logger.new 'message_centre.log'
+            @logger.level = Logger::DEBUG
           end
           
           # Forgets all information about _mid_. If mid is recorded as a
@@ -29,7 +38,8 @@ module Isi
           # it will also be erased from records.
           def expire mid
             @pending.delete mid
-            @forwared.delete mid
+            @forwarded.delete mid
+            @failures.delete mid
           end
 
           # Notifies the message centre that message with _mid_ has been
@@ -42,10 +52,53 @@ module Isi
           
           # Message centre will mark that this message failed to be delivered.
           # If this was a forwarded message it will return an array containing
-          # [Origin BID, BCG ID]. If it was a native message it will return nil.
+          # [Origin BID, BCG ID]. If it was a native message it will return
+          # medium (buddy cloud gate) BID.
           # *The message is not deleted from any records!*
           def failure mid
-            # TODO continue
+            @failures[mid] = [] unless @failures[mid]
+            case
+            when mbid = @pending[mid] then
+              @failures[mid] << [TimeDate.now, mbid]
+              return mbid
+            when origin_bcg = @forwarded[mid] then
+              @failures[mid] << [TimeDate.now, mbid]
+              return origin_bcg
+            else
+              # Bad
+              @logger.error('failure') {
+                "Message which is not recorded in forwarded or pending "\
+                "failed:\n"\
+                "MID: #{mid}\n"\
+                "pending: #{@pending}\n"\
+                "forwarded: #{@forwarded}\n"
+              }
+              return nil
+            end
+          end
+          
+          # Sends a message.
+          #
+          # Uses the linker in order to find the appropriate BCG buddy
+          # and the address book in order to find an address for that buddy.
+          #
+          # This message is considered native (we are sending it), and so it
+          # is recorded as "pending" until a successful delivery notification
+          # arrives. When this happens, the message centre can be notified
+          # by +success+, in which case the message is removed from all records
+          # (expired).
+          #
+          # If the message fails, +failure+ can be called for further actions.
+          # Read +failure+ for more info.
+          #
+          # === Argument
+          # * msg: A message of the appropriate class
+          # * register?: if given as false the message will be send but not
+          #              recorded in any records. Effectively, any subsequent
+          #              calls to +success+ of +fails+ for this message will be
+          #              meaningless (and erroneous).
+          def send_message msg, register = true
+            
           end
           
           Isi::db_bye __FILE__, name
