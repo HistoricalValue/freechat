@@ -141,6 +141,26 @@ module Isi
             # TODO implement
           end
           
+          # Returns the medium BID if there is a message pending with the
+          # given MID, nil otherwise.
+          # 
+          # Notice that this is a method that queries about native
+          # messages (send by us). To query about forwarded messages,
+          # one should use +forwarded?+.
+          def pending? mid
+            @pending[mid]
+          end
+          
+          # Returns a pair of origin and medium BID for a forwarded message
+          # pending for a delivery report with the given MID. If no such
+          # message exists, returns nil.
+          #
+          # Notice that this is a method that queries about forwarded messages.
+          # To query about native messages, one should use +pending?+.
+          def forwarded? mid
+            @forwarded[mid]
+          end
+          
           Isi::db_bye __FILE__, name
         end
       end
