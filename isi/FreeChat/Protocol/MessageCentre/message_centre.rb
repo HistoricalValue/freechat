@@ -151,6 +151,9 @@ module Isi
             @pending[mid]
           end
           
+          # call-seq:
+          #     forwarded?(mid) -> [origin BID, medium BID]
+          # 
           # Returns a pair of origin and medium BID for a forwarded message
           # pending for a delivery report with the given MID. If no such
           # message exists, returns nil.
@@ -159,6 +162,20 @@ module Isi
           # To query about native messages, one should use +pending?+.
           def forwarded? mid
             @forwarded[mid]
+          end
+          
+          # call-seq:
+          #     source_of(mid) -> bid or nil
+          # 
+          # Returns the BID of the buddy from which the message with the
+          # specified MID came from. This assumes that the message with the
+          # specified MID was forwarded and that it is still recorded in the
+          # records (it has not been expired using +expire+).
+          #
+          # If the message with the given MID is not a forwarded message or if
+          # it is not in the records any more, nil is returned.
+          def source_of mid
+            forwarded?(mid).first
           end
           
           private ##############################################################
