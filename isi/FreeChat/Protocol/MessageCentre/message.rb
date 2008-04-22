@@ -124,6 +124,9 @@ module Isi
             return result
           end
      
+          # call-seq:
+          #     deserialise(sdata) -> [type, mid, args]
+          
           # Deserialises the data of a string which was produced by the
           # default implementation of +serialise+.
           #
