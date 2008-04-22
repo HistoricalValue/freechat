@@ -2,7 +2,7 @@ module Isi
   module FreeChat
     module Protocol
       module MessageCentre
-        class UnserialisableMessageException < Exception
+        class UnserialisableMessageException < MessageCentreException
         end
       end
     end
