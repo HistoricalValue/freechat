@@ -8,6 +8,7 @@ module Isi
         # and it consists essentially of accessors to the following properties:
         # * MID  : the message ID (spatially and temporally unique)
         # * args : arguments of the message, given as pairs of arg key => value
+        # * type : the message type, as managed by the Message Centre
         #
         # This class implements generically the methods "serialise" and
         # "deserialise". Those methods assume that all properties mentioned
@@ -31,12 +32,15 @@ module Isi
           # args should be a +Hash+ with the arguments of this message. The
           # hash will not be duplicated so changes on it after it has been given
           # as a message argument holder better be absolutely conscious.
-          def initialize mid, args
+          # 
+          # Type is something that is managed by the Message Centre.
+          def initialize mid, args, type
             @mid = mid
             @args = args
+            @type = type
           end
 
-          attr_reader :mid, :args
+          attr_reader :mid, :args, :type
           
           # Returns the value of the arg with the given name.
           #
@@ -57,6 +61,8 @@ module Isi
           # is raised.
           # 
           # Default serialisation takes place as follows:
+          # * type: The type's length (up to 4294967295) and the type are
+          #         written
           # * MID : MID's length (up to 4294967295) is writen as bytes and
           #         the actual MID afterwards
           # * Args: The number of elements is written (up to 4294967295) as
@@ -72,6 +78,11 @@ module Isi
             when mid.is_a?(Integer) then mid_str = false
             else raise UnserialisableMessageException.new('MID')
             end
+            case
+            when type.is_a?(String)  then type_str = true
+            when type.is_a?(Integer) then type_str = false
+            else raise UnserialisableMessageException.new('Type')
+            end
             for arg_name, arg in args do
               raise UnserialisableMessageException.new('Argument name:' + arg_name) if
                   !(arg_name.is_a?(String) || arg_name.is_a?(Integer))
@@ -80,10 +91,14 @@ module Isi
             end
             
             # We are clean here
-            # ---
+            result = ''
+            # write type length and type
+            stringed = type_str ? type : String::from_bytes(type.bytes)
+            result += get_length stringed
+            result += stringed
             # write MID length and MID
             stringed = mid_str ? mid : String::from_bytes(mid.bytes)
-            result = get_length stringed
+            result += get_length stringed
             result += stringed
 
             # write args length
