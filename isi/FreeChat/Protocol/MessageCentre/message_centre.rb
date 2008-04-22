@@ -184,6 +184,15 @@ module Isi
             return @id_seed = @digester.digest(seed + DateTime.now.to_s)
           end
           
+          # Does the actual labour work of sending a message, whether it
+          # is forwarded or send.
+          #
+          # Arguments:
+          # * message : a message of the appropriate class
+          def post_message message
+            # TODO complete
+          end
+          
           Isi::db_bye __FILE__, name
         end
       end
