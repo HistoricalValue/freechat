@@ -61,7 +61,20 @@ module Isi
   class ::Array
     # Empty an array as by <code>a[0..a.length] = []</code>
     def empty!
-      self[0..length] = []
+      self[0..length-1] = []
+    end
+  end
+  
+  class ::String
+    # Arguments _bytes_ must be something iterable. Returns a string to
+    # which the bytes from the argument have been added in the order the
+    # iterator returned them.
+    def self.from_bytes(bytes)
+      result = ''
+      for byte in bytes do
+        result << byte
+      end
+      return result
     end
   end
 end
