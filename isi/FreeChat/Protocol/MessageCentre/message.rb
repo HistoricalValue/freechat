@@ -1,3 +1,5 @@
+# encoding: ascii-8bit
+
 module Isi
   module FreeChat
     module Protocol
@@ -27,7 +29,7 @@ module Isi
           # in space and time) and the given args. 
           # 
           # MID can be anything as long as it implements sensibly the
-          # == method.
+          # +==+ method.
           #
           # args should be a +Hash+ with the arguments of this message. The
           # hash will not be duplicated so changes on it after it has been given
@@ -93,29 +95,67 @@ module Isi
             # We are clean here
             result = ''
             # write type length and type
-            stringed = type_str ? type : String::from_bytes(type.bytes)
+            stringed = type_str ? type.dup : String::from_bytes(type.bytes)
+            stringed.force_encoding result.encoding
             result += get_length stringed
             result += stringed
             # write MID length and MID
-            stringed = mid_str ? mid : String::from_bytes(mid.bytes)
+            stringed = mid_str ? mid.dup : String::from_bytes(mid.bytes)
+            stringed.force_encoding result.encoding
             result += get_length stringed
             result += stringed
 
             # write args length
-            stringed = String::from_bytes args.length.bytes
-            result += get_length stringed
-            result += stringed
+            bytes = args.length.bytes
+            # pad
+            bytes.length.upto(3) { |index| bytes[index] = 0 }
+            result += String::from_bytes bytes
             
             for arg_pair in args do
               for arg_el in arg_pair do
-                stringed = arg_el.is_a?(String) ? arg_el :
+                stringed = arg_el.is_a?(String) ? arg_el.dup :
                     String::from_bytes(arg_el.bytes)
+                stringed.force_encoding result.encoding
                 result += get_length stringed
                 result += stringed
               end
             end
-            
+
             return result
+          end
+     
+          # Deserialises the data of a string which was produced by the
+          # default implementation of +serialise+.
+          #
+          # Raises +DeserialisationException+ if anything unexpected happens.
+          #
+          # Returns an array whose all elements are strings created
+          # from the binary data:
+          #     [type, mid, args_hash]
+          def self.deserialise sdata
+            case
+            when sdata.is_a?(String) then sdata = sdata.bytes.to_a
+            when sdata.is_a?(Array) then ;
+            else raise DeserialisationException.new("sdata is not a String " \
+                "or array: sdata.class = #{sdata.class}")
+            end
+            # Read type and mid
+            type, mid = Array.new(2).map! { read_field sdata }
+            
+            # Read arguments number
+            args_length = (
+              len_bytes = sdata[0..3]; sdata[0..3] = []
+              Integer::from_bytes len_bytes
+            )
+            
+            args = {}
+            # Read argumnents
+            args_length.downto(1) { |arg_num|
+              arg_name, arg_value = Array.new(2).map! { read_field sdata }
+              args[arg_name] = arg_value
+            }
+            
+            [type, mid, args]
           end
           
           private
@@ -126,9 +166,25 @@ module Isi
           def get_length str
             bytes = str.bytesize.bytes
             raise SizeTooLargeException if bytes.length > 4
+            # Pad bytes
+            bytes.length.upto(3) { |i| bytes[i] = 0 }
             return String::from_bytes(bytes)
           end
 
+          private_class_method
+          # Reads a field's length bytes and then the field's value bytes
+          # from the given *byte array*(!!!). Nullifies the used bytes
+          # in the array. Returns the field's value as a string created from
+          # the binary data
+          def self.read_field sdata
+            len_bytes = sdata[0..3]; sdata[0..3] = []
+            length = Integer::from_bytes(len_bytes)
+            raise DeserialisationException.new('Length <= 0 read:') \
+                if length <= 0
+            value_bytes = sdata[0..length-1]; sdata[0..length-1] = []
+            String::from_bytes(value_bytes)
+          end
+          
           Isi::db_bye __FILE__, name
         end
       end
