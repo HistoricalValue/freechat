@@ -7,7 +7,6 @@ $isi = {}
 require 'test/unit'
 require 'trunk/isi/lib'
 require 'pathname'
-require 'trunk/isi/FreeChat/Protocol/MessageCentre/message'
 require 'trunk/isi/freechat'
 
 module Isi
@@ -75,19 +74,32 @@ module Isi
 
 '
             }
+            @restrictions = {
+              'mid' => String, 'bid' => String,
+              'content' => String, 'content2' => String,
+            }
             @type = 12
-            @message = Message.new @mid, @args, @type
+            @message = Message.new @type, @mid, @args, @restrictions
           end
           
           def test_serialise
             sdata = @message.serialise
-            p sdata, sdata.length
             type, mid, args= Message::deserialise(sdata)
             type = Integer::from_bytes(type.bytes.to_a)
             assert_equal @type, type
             assert_equal @mid, mid
             assert_equal @args, args
           end
+          
+          def test_argument_restrictions
+            assert_raise(MessageArgumentNameException) {
+              @message['bollock'] = nil
+            }
+            assert_raise(MessageArgumentTypeException) {
+              @message['bid'] = 12
+            }
+          end
+          
         end
       end
     end

@@ -22,9 +22,11 @@ module Isi
         # are used.
         class Message
           Isi::db_hello __FILE__, name
-          
-          ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
 
+          require ModuleRootDir + 'message_argument_exception'
+          require ModuleRootDir + 'message_argument_name_exception'
+          require ModuleRootDir + 'message_argument_type_exception'
+          
           # Initialises this message with the given type,ID (which must be
           # unique in space and time) and the given args. 
           # 
@@ -57,21 +59,15 @@ module Isi
             @type = type; @type.freeze
             @mid = mid; @mid.freeze
             @allowed = allowed_args; @allowed.freeze
+            @args = {}
             for arg_name, arg_value in args do self[arg_name] = arg_value end
-          end
-          
-          def initialize mid, args, type
-            raise Exception.new('This is an obsolete constructor')
-            @mid = mid
-            @args = args
-            @type = type
           end
 
           attr_reader :mid, :type
           
           # Returns the value of the arg with the given name.
           def [] arg_name
-            args[arg_name]
+            @args[arg_name]
           end
           
           # Sets the argument of the given name to the given value.
@@ -88,7 +84,8 @@ module Isi
               raise MessageArgumentNameException.new(arg_name) unless
                   arg_restriction
               raise MessageArgumentTypeException.new(arg_name + ':' + 
-                  arg_value.class) unless arg_value.class < arg_restriction
+                  arg_value.class.to_s + '!<=' + arg_restriction.to_s) unless
+                  arg_value.class <= arg_restriction
             end
             @args[arg_name] = arg_value
           end
@@ -127,7 +124,7 @@ module Isi
             when type.is_a?(Integer) then type_str = false
             else raise UnserialisableMessageException.new('Type')
             end
-            for arg_name, arg in args do
+            for arg_name, arg in @args do
               raise UnserialisableMessageException.new('Argument name:' + arg_name) if
                   !(arg_name.is_a?(String) || arg_name.is_a?(Integer))
               raise UnserialisableMessageException.new('Argument value:' + arg) if
@@ -148,12 +145,12 @@ module Isi
             result += stringed
 
             # write args length
-            bytes = args.length.bytes
+            bytes = @args.length.bytes
             # pad
             bytes.length.upto(3) { |index| bytes[index] = 0 }
             result += String::from_bytes bytes
             
-            for arg_pair in args do
+            for arg_pair in @args do
               for arg_el in arg_pair do
                 stringed = arg_el.is_a?(String) ? arg_el.dup :
                     String::from_bytes(arg_el.bytes)
