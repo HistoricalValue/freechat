@@ -7,9 +7,9 @@ module Isi
 
           require 'digest/sha2'
           require 'logger'
+          require ModuleRootDir + 'message_types'
+          include MessageTypes
           
-          ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
-
           # Constructs a new message centre.
           #
           # === Arguments
