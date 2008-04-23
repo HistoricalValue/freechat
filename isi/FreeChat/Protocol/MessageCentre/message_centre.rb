@@ -177,7 +177,7 @@ module Isi
           def source_of mid
             forwarded?(mid).first
           end
-          
+
           private ##############################################################
           def createID seed=nil
             seed = seed ? @digester.digest(seed + @id_seed) : @id_seed
