@@ -20,6 +20,7 @@ module Isi
             @mc = MessageCentre.new(@bb, @fingerprint)
             @mid = @mc.send :createID
             @args = {
+              'int' => 12,
               'mid' => @mid,
               'bid' => @fingerprint,
               'content' => 'EEEELa re ksanthia poy xathikes toson kairo'*23,
@@ -77,6 +78,7 @@ module Isi
             @restrictions = {
               'mid' => String, 'bid' => String,
               'content' => String, 'content2' => String,
+              'int' => Integer,
             }
             @type = 12
             @message = Message.new @type, @mid, @args, @restrictions
@@ -84,8 +86,10 @@ module Isi
           
           def test_serialise
             sdata = @message.serialise
+            p sdata, sdata.length
             type, mid, args= Message::deserialise(sdata)
             type = Integer::from_bytes(type.bytes.to_a)
+            args['int'] = Integer::from_bytes(args['int'].bytes.to_a)
             assert_equal @type, type
             assert_equal @mid, mid
             assert_equal @args, args
