@@ -70,11 +70,23 @@ module Isi
           # * frm:String : BID of the sender of this message
           REQ_DIRECT           = 0x11
 
-
-
           Isi::db_bye __FILE__, name
           
-          
+          # Returns a +Hash+ which contains all valid message types (as defined
+          # in the constants referring to message types in this module)
+          # associated with their names.
+          def valid_message_types
+            result = MessageTypes.constants(false)
+            result.reject! { |const_name| (const_name =~ /^(REQ|STM)_/).nil? }
+            result.map! {|const_name| MessageTypes.const_get const_name, false }
+            return result
+          end
+
+          # Checks if a given message type is valid (is a value from the 
+          # constants referring to message types defined in this module)
+          def valid_message_type? mtype
+            valid_message_types.any? {|vmt| vmt.eql?(mtype) && mtype.eql?(vmt) }
+          end
         end
       end
     end
