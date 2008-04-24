@@ -69,24 +69,94 @@ module Isi
           # * rcp:String : the recipient BID (of this message)
           # * frm:String : BID of the sender of this message
           REQ_DIRECT           = 0x11
-
-          Isi::db_bye __FILE__, name
           
           # Returns a +Hash+ which contains all valid message types (as defined
           # in the constants referring to message types in this module)
           # associated with their names.
-          def valid_message_types
-            result = MessageTypes.constants(false)
+          def self.message_types
+            result = constants(false)
             result.reject! { |const_name| (const_name =~ /^(REQ|STM)_/).nil? }
-            result.map! {|const_name| MessageTypes.const_get const_name, false }
+            result.map! {|const_name| const_get const_name, false }
             return result
+          end
+          # Instance method version of +MessageTypes::message_types+
+          def message_types(*args, &block)
+            MessageTypes::message_types(*args, &block)
           end
 
           # Checks if a given message type is valid (is a value from the 
           # constants referring to message types defined in this module)
-          def valid_message_type? mtype
-            valid_message_types.any? {|vmt| vmt.eql?(mtype) && mtype.eql?(vmt) }
+          def self.valid_message_type? mtype
+            message_types.any? {|vmt| vmt.eql?(mtype) && mtype.eql?(vmt) }
           end
+          # Instance method version of ++
+          def valid_message_type?(*args, &block)
+            MessageTypes::valid_message_type?(*args, &block)
+          end
+          
+          # Message argument restrictions is an +Hash+ which contains the
+          # +Hash+es appropriate to pass as arguments to new messages.
+          # Keys in the Hash are the names of the message types, as defined 
+          # as constants in this module.
+          MessageRestrictions = {
+            'STM_DELIVERY_SUCCESS' => {'mid' => String, 'rcp' => String},
+            'STM_DELIVERY_FAILURE' => {'mid' => String, 'rcp' => String},
+            'STM_PRESENT'          => {'bid' => String, 'rcp' => String},
+            'STM_GOODBYE'          => {'bid' => String},
+            'STM_MESSAGE'          => {
+              'cnt' => String, 'rcp' => String, 'frm' => String},
+            'STM_HELLO'            => {'rcp' => String},
+            'STM_DIRECT'           => {'rcp' => String, 'frm' => String},
+            'REQ_PRESENCE'         => {'bid' => String},
+            'REQ_DIRECT'           => {'rcp' => String, 'frm' => String},
+          }
+          
+          # Returns an array of the message type names, as defined as constants
+          # in this module.
+          def self.message_types_names
+            constants.map(&Isi::Procs[:to_s]).reject { |const_name|
+              (const_name =~ /^(STM|REQ)_/).nil?
+            }
+          end
+          # Instance method version of +MessageTypes::message_types_names+
+          def message_types_names(*args, &block)
+            MessageTypes::message_types_names(*args, &block)
+          end
+          
+          # Returns a Hash with message types names mapped to message types,
+          # as defined as constants in this module.
+          def self.message_types_with_names
+            result = {}
+            message_types_names.each { |name| result[name] = const_get name }
+            return result
+          end
+          # Instance method version of
+          def message_types_with_names(*args, &block)
+            MessageTypes::message_types_with_names(*args, &block)
+          end
+          
+          # Returns the hash which is appropriate for a new message as
+          # argument restrictions. Checks if the given message type is
+          # a valid type and if it is, it returns the appropriate restrictions.
+          # If it is not it raises a +MessageCentreException+.
+          def self.message_restrictions message_type
+            vmts = message_types
+            raise MessageCentreException.new('Invalid message type: ' +
+                "#{message_type} (not in) #{vmts}") \
+                unless vmts.include? message_type
+            # we do not want any nils now
+            type_name = message_types_with_names.invert[message_type]
+            raise message_type.inspect if type_name.nil?
+            result = MessageRestrictions[type_name]
+            raise type_name.inspect if result.nil?
+            return result
+          end
+          # Instance method version of +MessageTypes::message_restrictions+.
+          def message_restrictions(*args, &block)
+            MessageTypes::message_restrictions(*args, &block)
+          end
+          
+          Isi::db_bye __FILE__, name
         end
       end
     end
