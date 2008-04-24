@@ -77,4 +77,9 @@ module Isi
       return result
     end
   end
+  
+  # Often used functions
+  Procs = {
+    :to_s => lambda { |something_anything| something_anything.to_s }
+  }
 end
