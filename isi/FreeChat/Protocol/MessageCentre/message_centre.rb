@@ -178,6 +178,28 @@ module Isi
             forwarded?(mid).first
           end
 
+          # Creates a message with the given arguments. Makes sure that
+          # everything is valid and coherent and if they are a 
+          # +Message+ instance is returned. Otherwise a +MessageCentreException+
+          # is raised. For specific exceptions thrown depending on the message
+          # type or message arguments, read the documentation on +Message+
+          # and +MessageTypes+.
+          # === Arguments
+          # * mtype: message type - found from the constants in module
+          # +MessageTypes+.
+          # * args: message arguments as defined by message semantics and
+          # by the constraints found in module +MessageTypes+
+          def create_message mtype, args
+            # All checks done by constructors and stuff. We only need to
+            # check the type and generate the ID.
+            
+            # this will raise an exception if type is wrong
+            restrictions = message_restrictions mtype
+            id = createID
+            
+            return Message.new(mtype, id, args, restrictions)
+          end
+          
           private ##############################################################
           def createID seed=nil
             seed = seed ? @digester.digest(seed + @id_seed) : @id_seed
