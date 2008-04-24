@@ -1,8 +1,7 @@
 # encoding: UTF-8
 
-$:.unshift File.join(File.dirname(__FILE__),'..','lib')
-
-$isi = {}
+$isi = {  :debug_hello => false,
+  :debug_bye => false,}
 
 require 'test/unit'
 require 'trunk/isi/lib'
@@ -82,11 +81,14 @@ module Isi
             }
             @type = 12
             @message = Message.new @type, @mid, @args, @restrictions
+            @message_eql = Message.new @type, @mid.dup, @args.dup, @restrictions.dup
+            @message0 = Message.new @type-1,  @mid.dup, @args.dup, @restrictions.dup
+            @message1 = Message.new @type, @mid.dup+'__', @args.dup, @restrictions.dup
+            @message2 = Message.new @type, @mid.dup, (args = @args.dup; args.delete(@args.keys.first); args), @restrictions.dup
           end
           
           def test_serialise
             sdata = @message.serialise
-            p sdata, sdata.length
             type, mid, args= Message::deserialise(sdata)
             type = Integer::from_bytes(type.bytes.to_a)
             args['int'] = Integer::from_bytes(args['int'].bytes.to_a)
@@ -104,6 +106,22 @@ module Isi
             }
           end
           
+          def test_enumerability
+            assert @message.all? {|name, value| @args[name] == value }
+          end
+          
+          def test_equalities
+            assert(@message == @message_eql)
+            assert(@message.eql?(@message_eql))
+            assert @message_eql == @message
+            assert @message_eql.eql?(@message)
+            for m in [@message0, @message1, @message2] do
+              assert(!(@message == m))
+              assert(!(m == @message))
+              assert(!@message.eql?(m))
+              assert !m.eql?(@message)
+            end
+          end
         end
       end
     end

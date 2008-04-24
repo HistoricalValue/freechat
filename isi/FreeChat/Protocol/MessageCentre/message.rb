@@ -23,6 +23,8 @@ module Isi
         class Message
           Isi::db_hello __FILE__, name
 
+          include Enumerable
+          
           require ModuleRootDir + 'message_argument_exception'
           require ModuleRootDir + 'message_argument_name_exception'
           require ModuleRootDir + 'message_argument_type_exception'
@@ -89,6 +91,13 @@ module Isi
             end
             @args[arg_name] = arg_value
           end
+          
+          # Calls _block_ once for each argument, passing the argument name
+          # and value as arguments
+          def each_argument(&block)
+            @args.each_pair(&block)
+          end
+          alias_method(:each, :each_argument)
           
           # Returns a string which is the serialised form of this message.
           # 
@@ -198,6 +207,20 @@ module Isi
             }
             
             [type, mid, args]
+          end
+          
+          # Propagates equality method to all fields
+          def == other
+            @type == other.type && @mid == other.mid &&
+                all? { |n, v| other[n] == v} &&
+                other.all? { |n, v| self[n] == v }
+          end
+          
+          # Propagates equality method to all fields
+          def eql? other
+            @type.eql?(other.type) && @mid.eql?(other.mid) &&
+                all? { |n, v| other[n].eql? v } &&
+                other.all? { |n, v| self[n].eql? v }
           end
           
           private

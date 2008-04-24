@@ -189,7 +189,7 @@ module Isi
           # +MessageTypes+.
           # * args: message arguments as defined by message semantics and
           # by the constraints found in module +MessageTypes+
-          def create_message mtype, args
+          def create_message mtype, args={}
             # All checks done by constructors and stuff. We only need to
             # check the type and generate the ID.
             
