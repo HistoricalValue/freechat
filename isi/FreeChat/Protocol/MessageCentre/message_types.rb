@@ -3,74 +3,78 @@ module Isi
     module Protocol
       module MessageCentre
         module MessageTypes
-        Isi::db_hello __FILE__, name
-        
-        ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
-        
-        # Statements #############
-        
-        # Statement:Delivery Success: indicates that a message was
-        # successfully delivered.
-        # === Arguments
-        # * mid:String : message ID which the delivery report concerns
-        # * rcp:String : the recipient BID (of this message)
-        STM_DELIVERY_SUCCESS = 0x00
-        # Statement:Deliery Failure: indicates that a message failed to
-        # be delivered to the recipient.
-        # === Arguments
-        # * mid:String : message ID which the delivery report concerns
-        # * rcp:String : the recipient BID (of this message)
-        STM_DELIVERY_FAILURE = 0x01
-        # Statement:Presence: indicates that some buddy is present
-        # === Arguments
-        # * bid:String : who is present
-        # * rcp:String : the recipient BID (of this message)
-        STM_PRESENT          = 0x02
-        # Statement:Goodbye: indicates that some buddy is leaving us.
-        # This message concerns everybody, has no specific recipient.
-        # === Arguments
-        # * bid:String : who is leaving
-        STM_GOODBYE          = 0x03
-        # Statement:Message: a message going to another buddy. It has a
-        # a content and it will be hopping from node to node, so the content
-        # should not be long. For long contents, a direct connection should
-        # be made. It can be requested with REQ_DIRECT
-        # === Arguments
-        # * cnt:String : the content of this message (bytes)
-        # * rcp:String : the recipient BID (of this message)
-        # * frm:String : BID of the sender of this message
-        STM_MESSAGE          = 0x04
-        # Statement:Hello: a message indicating that some buddy has become
-        # available. It has no specific recipient, concerns everybody.
-        # === Arguments
-        # * bid:String : who became available
-        STM_HELLO            = 0x05
-        # Statement:Direct: a message send as a response to REQ_DIRECT when
-        # the direct connection has been initiated.
-        # === Arguments
-        # * rcp:String : the recipient of this message (BID) (the one who sent
-        # REQ_DIRECT)
-        # * frm:String : the sender of this message (BID) (the one who connects
-        # to "rcp")
-        STM_DIRECT           = 0x06
-        
-        # Requests ############
-        # Request:Presence: requests the presence status of a given buddy.
-        # Anyone who already knows that the specified buddy is available,
-        # can reply with a STM_PRESENT
-        # === Arguments
-        # * bid:String : BID of the buddy in question
-        REQ_PRESENCE         = 0x10
-        # Request:Direct: requests that some buddy iniates a direct connection
-        # with the sender of this message. The receiver of this message is
-        # supposed to connect directly to the sender and when this happens,
-        # send him a STM_DIRECT message.
-        # === Arguments
-        # * rcp:String : the recipient BID (of this message)
-        # * frm:String : BID of the sender of this message
-        REQ_DIRECT           = 0x11
-        
-        Isi::db_bye __FILE__, name
+          Isi::db_hello __FILE__, name
+
+          ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
+
+          # Statements #############
+
+          # Statement:Delivery Success: indicates that a message was
+          # successfully delivered.
+          # === Arguments
+          # * mid:String : message ID which the delivery report concerns
+          # * rcp:String : the recipient BID (of this message)
+          STM_DELIVERY_SUCCESS = 0x00
+          # Statement:Deliery Failure: indicates that a message failed to
+          # be delivered to the recipient.
+          # === Arguments
+          # * mid:String : message ID which the delivery report concerns
+          # * rcp:String : the recipient BID (of this message)
+          STM_DELIVERY_FAILURE = 0x01
+          # Statement:Presence: indicates that some buddy is present
+          # === Arguments
+          # * bid:String : who is present
+          # * rcp:String : the recipient BID (of this message)
+          STM_PRESENT          = 0x02
+          # Statement:Goodbye: indicates that some buddy is leaving us.
+          # This message concerns everybody, has no specific recipient.
+          # === Arguments
+          # * bid:String : who is leaving
+          STM_GOODBYE          = 0x03
+          # Statement:Message: a message going to another buddy. It has a
+          # a content and it will be hopping from node to node, so the content
+          # should not be long. For long contents, a direct connection should
+          # be made. It can be requested with REQ_DIRECT
+          # === Arguments
+          # * cnt:String : the content of this message (bytes)
+          # * rcp:String : the recipient BID (of this message)
+          # * frm:String : BID of the sender of this message
+          STM_MESSAGE          = 0x04
+          # Statement:Hello: a message indicating that some buddy has become
+          # available. It has no specific recipient, concerns everybody.
+          # === Arguments
+          # * bid:String : who became available
+          STM_HELLO            = 0x05
+          # Statement:Direct: a message send as a response to REQ_DIRECT when
+          # the direct connection has been initiated.
+          # === Arguments
+          # * rcp:String : the recipient of this message (BID) (the one who sent
+          # REQ_DIRECT)
+          # * frm:String : the sender of this message (BID) (the one who connects
+          # to "rcp")
+          STM_DIRECT           = 0x06
+
+          # Requests ############
+          # Request:Presence: requests the presence status of a given buddy.
+          # Anyone who already knows that the specified buddy is available,
+          # can reply with a STM_PRESENT
+          # === Arguments
+          # * bid:String : BID of the buddy in question
+          REQ_PRESENCE         = 0x10
+          # Request:Direct: requests that some buddy iniates a direct connection
+          # with the sender of this message. The receiver of this message is
+          # supposed to connect directly to the sender and when this happens,
+          # send him a STM_DIRECT message.
+          # === Arguments
+          # * rcp:String : the recipient BID (of this message)
+          # * frm:String : BID of the sender of this message
+          REQ_DIRECT           = 0x11
+
+
+
+          Isi::db_bye __FILE__, name
+          
+          
         end
       end
     end
