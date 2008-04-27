@@ -3,27 +3,32 @@ module Isi
     module Protocol
       module Linker
         # Linker is the class responsible for knowing how each Buddy can
-        # be actually reached (through which other buddy, etc). It is also
-        # responsible for discovering those paths and who is currently
-        # available.
+        # be actually reached (through which other buddy, etc). This is
+        # done by interpreting some significant events, implemented as methods
+        # in this class.
+        # 
+        # It is also the place to get an address for a bid from.
         # 
         # === Arguments
-        # * ui : a FreeChatUI
         # * bbq : a BuddyBook
-        class Linker
+        # * po : a PostOffice
+        # * ui : a FreeChatUI
+        class Linkern
           def initialize bbq, ui = nil
-            @ui = ui
             @bbq = bbq
+            @ui = ui
+            # Mediums is a hash which maps bids to medium bids
+            @mediums = {}
+            # Special addresses: Maps bid to address which should be used
+            # instead of the ones in address book
+            @addr = {}
           end
           
-          # Starts discovery of available buddies and buddy paths.
-          # To speed up the discovery process, each buddy is attempted
-          # to be reached directly and if this fails, buddypath discovery
-          # is enabled.
-          def discovery
-            @bbq.each { |bid, bentry| bentry.addresses.each { |address|
-                logi "Discovering #{bid} @ #{address}"
-            }}
+          # Means that the given buddy has initiated a connection from the
+          # given address, and therefore this address can be used for sending
+          # messages to/through that buddy.
+          def buddy_using_address bid, addr
+            
           end
           
           private ##############################################################
