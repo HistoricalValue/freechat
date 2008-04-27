@@ -4,6 +4,8 @@ module Isi
       class BuddyBook
         Isi::db_hello __FILE__, name
         
+        include Enumerable
+        
         ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
         
         def initialize
@@ -27,6 +29,11 @@ module Isi
           raise ArgumentError.new("entry must be a #{BuddyEntry}") unless
               entry.is_a? BuddyEntry
           @entries[entry.id] = entry
+        end
+        
+        # Yields to the given block, passing BID and BuddyEntry as arguments.
+        def each(&block)
+          @entries.each(&block)
         end
         
         Isi::db_bye __FILE__, name
