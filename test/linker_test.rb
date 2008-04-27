@@ -28,10 +28,7 @@ module Isi
             @link = Linker.new @ui, @bbq
             for b in @bens do @bbq << b end
           end
-          
-          def test_discover
-            @link.discovery
-          end
+  
         end
       end
     end

@@ -13,7 +13,7 @@ module Isi
         # * bbq : a BuddyBook
         # * po : a PostOffice
         # * ui : a FreeChatUI
-        class Linkern
+        class Linker
           def initialize bbq, ui = nil
             @bbq = bbq
             @ui = ui
