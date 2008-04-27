@@ -11,7 +11,7 @@ module Isi
         # * ui : a FreeChatUI
         # * bbq : a BuddyBook
         class Linker
-          def initialize ui, bbq
+          def initialize bbq, ui = nil
             @ui = ui
             @bbq = bbq
           end
@@ -21,14 +21,14 @@ module Isi
           # to be reached directly and if this fails, buddypath discovery
           # is enabled.
           def discovery
-            @bbq.each { |bid, bentry| 
-              logi "Discovering #{bid}"
-            }
+            @bbq.each { |bid, bentry| bentry.addresses.each { |address|
+                logi "Discovering #{bid} @ #{address}"
+            }}
           end
           
           private ##############################################################
           # my logging methods
-          def log level, msg; @ui.l level, msg end
+          def log level, msg; @ui.l level, msg if @ui end
           def logi msg; log FreeChatUI::INFO, msg end
         end
       end
