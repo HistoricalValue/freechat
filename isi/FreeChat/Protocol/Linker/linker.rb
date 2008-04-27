@@ -19,7 +19,9 @@ module Isi
           # to be reached directly and if this fails, buddypath discovery
           # is enabled.
           def discovery
-            
+            @bbq.each { |bid, bentry| 
+              
+            }
           end
         end
       end
