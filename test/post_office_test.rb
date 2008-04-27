@@ -35,11 +35,6 @@ module Isi
           flunk e.to_s
         end
         
-        # def test_foo
-          # assert(false, 'Assertion was false.')
-          # flunk "TODO: Write test"
-          # assert_equal("foo", bar)
-        # end
       end
     end
   end

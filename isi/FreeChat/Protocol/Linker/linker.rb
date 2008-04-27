@@ -63,6 +63,12 @@ module Isi
             return special ? special.first : normal ? normal.first : nil
           end
           
+          # Returns the medium buddy for the given bid. If it is not known,
+          # it returns nil
+          def get_medium_for bid
+            @mediums[bid]
+          end
+          
           private ##############################################################
           # my logging methods
           def log level, msg; @ui.l level, msg if @ui end

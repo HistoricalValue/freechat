@@ -13,14 +13,17 @@ module Isi
           # Constructs a new message centre.
           #
           # === Arguments
-          # * buddybk: buddy book, used to look up addresses
+          # * po:      a post office to send messages
+          # * linker:  the linker to use for messages
           # * id_seed: used in generating message IDs which are hopefully\
           #            spatially and timely unique. It is not used directly\
           #            in the ID generation, but it is first digested with\
           #            an 512bit SHA2 digester
-          def initialize buddybk,
+          def initialize po, linker, ui = nil
             id_seed = ((rand+rand+rand).to_s + DateTime.now.to_s).crypt('f6')
-            @addrbook = buddybk
+            @po = po
+            @linker = linker
+            @ui = ui
             @digester = Digest::SHA2.new 512
             # id_seed is used in generating message IDs which are hopefully
             # spatially and timely unique
@@ -115,7 +118,23 @@ module Isi
           #              +forward_message+ with <code>register?=false</code>\
           #              are equivalent.
           def send_message msg, register = true
-            # TODO implement
+            recipient = msg['rcp']
+            # when the message has a recipient, try to send it there
+            if recipient then
+              medium = @linker.get_medium_for recipient
+              post_message medium, msg
+              @pending[msg.id] = medium if register
+              logf "#({register})pending[#{msg.id} =1 #{medium}"
+            else
+              # send it to everyone we can
+              for bentry in @bbq do
+                if (medium = @linker.get_medium_for bentry.id) then
+                  post_message medium, msg
+                  @pending[msg.id] = medium
+                  logf "(#{register})pending[#{msg.id} =N #{medium}"
+                end
+              end
+            end
           end
           
           # Forwards a message.
@@ -138,7 +157,23 @@ module Isi
           #              +forward_message+ with <code>register?=false</code>\
           #              are equivalent.
           def forward_message msg, register=true
-            # TODO implement
+            recipient = msg['rcp']
+            # when the message has a recipient, try to send it there
+            if recipient then
+              medium = @linker.get_medium_for recipient
+              post_message medium, msg
+              @forwarded[msg.id][1] = medium if register
+              logf "#({register})forwarded[#{msg.id}].medium =1 #{medium}"
+            else
+              # send it to everyone we can
+              for bentry in @bbq do
+                if (medium = @linker.get_medium_for bentry.id) then
+                  post_message medium, msg
+                  @pending[msg.id] = medium
+                  logf "(#{register})forwarded[#{msg.id}].medium =N #{medium}"
+                end
+              end
+            end
           end
           
           # Returns the medium BID if there is a message pending with the
@@ -178,6 +213,14 @@ module Isi
             forwarded?(mid).first
           end
 
+          # Registers the given mid as the origin buddy of msg.
+          def received_from bid, msg
+            buddies = @forwarded[msg.id]
+            unless buddies then buddies = [bid]
+                           else buddies[0] = bid
+                           end
+          end
+          
           # Creates a message with the given arguments. Makes sure that
           # everything is valid and coherent and if they are a 
           # +Message+ instance is returned. Otherwise a +MessageCentreException+
@@ -210,10 +253,16 @@ module Isi
           # is forwarded or send.
           #
           # Arguments:
+          # * recipient: the recipient bid (NOT THE ACTUAL RECIPIENT, THE MEDIUM
+          # FOR EXAMPLE)
           # * message : a message of the appropriate class
-          def post_message message
-            # TODO complete
+          def post_message recipient, message
+            @po.send_to @linker.get_address_of(recipient), message.serialise
           end
+          
+          # My loggings
+          def log level, msg; @ui.mc level, msg end
+          def logf msg; log FreeChatUI::FINE, msg end
           
           Isi::db_bye __FILE__, name
         end
