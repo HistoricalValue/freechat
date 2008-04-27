@@ -8,9 +8,11 @@ module Isi
         # available.
         # 
         # === Arguments
+        # * ui : a FreeChatUI
         # * bbq : a BuddyBook
         class Linker
-          def initialize bbq
+          def initialize ui, bbq
+            @ui = ui
             @bbq = bbq
           end
           
@@ -20,9 +22,14 @@ module Isi
           # is enabled.
           def discovery
             @bbq.each { |bid, bentry| 
-              
+              logi "Discovering #{bid}"
             }
           end
+          
+          private ##############################################################
+          # my logging methods
+          def log level, msg; @ui.l level, msg end
+          def logi msg; log FreeChatUI::INFO, msg end
         end
       end
     end
