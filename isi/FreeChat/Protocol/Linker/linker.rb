@@ -19,6 +19,8 @@ module Isi
             @ui = ui
             # Mediums is a hash which maps bids to medium bids
             @mediums = {}
+              # Example
+              # BID => [{:mbid => MBID , :hops => HOPS}]
             # Special addresses: Maps bid to address which should be used
             # instead of the ones in address book
             @special_addresses = {}
@@ -66,9 +68,66 @@ module Isi
           # Returns the medium buddy for the given bid. If it is not known,
           # it returns nil
           def get_medium_for bid
-            @mediums[bid]
+            medium = get_medium_entry(bid).first
+            return medium[:mbid] unless medium.nil?
           end
           
+          # Tells the linker that a buddy is directly connectable.
+          def buddy_connectable bid
+            # first of all means that medium for that buddy is itself
+            get_medium_entry(bid).unshift(Hash[:mbid, bid, :hops, nil])
+            # secondly it is present, but that is a consequence of the above
+          end
+          
+          # Tells the linker that we were notified that buddy _bid_ is present
+          # by a message from _mbid_. _hops_ is the distance of _mbid_ from
+          # _bid_ as _mbid_ itself reports.
+          def buddy_is_present bid, mbid, hops = 0
+            entry = get_medium_entry bid
+            # find right index
+            insi = 0
+            enum = Enumerable::Enumerator.new entry
+            begin while true do
+                    raise StopIteration if hops < enum.next[:hops]
+                    insi += 0
+                  end
+            rescue StopIteration => e
+            end
+            entry.insert insi, Hash[:mdib, mbid, :hops, hops]
+          end
+          
+          # Returns true if the buddy is present (there is a medium buddy
+          # to reach it, even if medium buddy is itself).
+          def buddy_present? bid
+            ! @mediums[bid].nil?
+          end
+          
+          # Informs the linker that some buddy is leaving the cloud. This means
+          # this this buddy will be not considered present any more and that
+          # any buddies for which the leaving buddy was the medium, will be cut
+          # off. One can check which buddies are currently cut of by querying
+          # through method +cut_off_buddies+.
+          def buddy_goodbyed bid
+            # first impact is that this buddy is not present any more,
+            # so it should be removed from the mediums hash
+            @mediums.delete bid
+            # second and worse effect is that this buddy cannot be a medium
+            # to other buddies any more
+            @mediums.each_value { |v|
+              v.reject! { |medium| medium[:mdib] == bid }
+            }
+          end
+          
+          # Notifies the linker that _mbid_ has failed as a medium for buddy
+          # _bid_. This will probably mark bid as cut off.
+          def buddy_medium_failure mbid, bid
+            entry = get_medium_for bid
+            entry.reject! { |medium| medium[:mbid] == mbid }
+          end
+          
+          def cut_off_buddies
+            # TODO do
+          end
           private ##############################################################
           # my logging methods
           def log level, msg; @ui.l level, msg if @ui end
