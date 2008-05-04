@@ -125,9 +125,17 @@ module Isi
             entry.reject! { |medium| medium[:mbid] == mbid }
           end
           
+          # Returns an array of the buddies which are supposedly still
+          # present (they have not "goodbyed") but their medium buddies
+          # have ("goodbyed"). So, there is not way to reach those buddies
+          # and a rediscovery should be run, informing the linker of the new
+          # results.
           def cut_off_buddies
-            # TODO do
+            result = []
+            @mediums.each { |bid, mediums| result << bid if mediums.empty? }
+            return result
           end
+          
           private ##############################################################
           # my logging methods
           def log level, msg; @ui.l level, msg if @ui end
