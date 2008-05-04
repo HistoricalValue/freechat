@@ -121,7 +121,7 @@ module Isi
           # Notifies the linker that _mbid_ has failed as a medium for buddy
           # _bid_. This will probably mark bid as cut off.
           def buddy_medium_failure mbid, bid
-            entry = get_medium_for bid
+            entry = get_medium_entry bid
             entry.reject! { |medium| medium[:mbid] == mbid }
           end
           
@@ -132,6 +132,14 @@ module Isi
           # my logging methods
           def log level, msg; @ui.l level, msg if @ui end
           def logi msg; log FreeChatUI::INFO, msg end
+          
+          # Returns an entry if there is one, otherwise creates a new one
+          # and returns it
+          def get_medium_entry bid
+            result = @mediums[bid]
+            result = [] unless result
+            return result
+          end
         end
       end
     end
