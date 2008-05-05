@@ -54,22 +54,33 @@ module Isi
             #          ,--- Marika    Chandra
             # Steve --<                 |
             #   |      `------------ Aundrey --- Kostas
-            #   |                       |
-            #  Miranda                Pekka
+            #   |                       |   `---.
+            #  Miranda                Pekka      `--- "I"
             #
             # "me" connects directly to Aundrey
             @link.buddy_connectable Aundrey ; assertions_after_Aundrey
+            # pseudo discovery process:
+            # Aundrey says that Chandra, Kostas, Pekka and Steve are present
           end
           
           private
           def assertions_after_Aundrey
             for bid in BIDs do 
-              assert(!@link.buddy_present?(bid), bid + ' not supposed to be ' +
-                  'known as present yet, but is marked so') \
-                  unless bid == Aundrey
-              assert(@link.buddy_present?(Aundrey), 'Aundrey is directly ' +
-                  'connectable but she is not marked as present')
+              unless bid == Aundrey
+                assert(!@link.buddy_present?(bid), bid +
+                  ' not supposed to be ' +
+                  'known as present yet, but is marked so')
+                @bens[bid].length.times do |_retry|
+                  assert(@link.get_address_of(bid, _retry).nil?,
+                      "Not present buddy(#{bid})'s #{_retry}th address is " +
+                      'not nil')
+                end
+              end
             end
+            assert(@link.buddy_present?(Aundrey), 'Aundrey is directly ' +
+                'connectable but she is not marked as present')
+            assert(@bens[Aundrey].include?(@link.get_address_of(Aundrey)),
+                "Address of #{Aundrey} comes from space")
           end
           
         end

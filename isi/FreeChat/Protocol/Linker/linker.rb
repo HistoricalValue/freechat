@@ -38,7 +38,7 @@ module Isi
           end
           
           # Gets the appropriate address for the bid.
-          # *NOTICE* this is the address of the medium buddy. This is an
+          # *NOTICE* this is NOT the address of the medium buddy. This is an
           # appropriate address that buddy _bid_ is actually using.
           # If the _retry-ies are too many or if there is no address for this
           # buddy at all, this method returns nil.
