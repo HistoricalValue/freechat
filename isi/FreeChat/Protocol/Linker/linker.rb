@@ -145,7 +145,7 @@ module Isi
           # and returns it
           def get_medium_entry bid
             result = @mediums[bid]
-            result = [] unless result
+            @mediums[bid] = result = [] unless result
             return result
           end
         end

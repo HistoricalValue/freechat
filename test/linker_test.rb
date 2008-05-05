@@ -67,6 +67,8 @@ module Isi
               assert(!@link.buddy_present?(bid), bid + ' not supposed to be ' +
                   'known as present yet, but is marked so') \
                   unless bid == Aundrey
+              assert(@link.buddy_present?(Aundrey), 'Aundrey is directly ' +
+                  'connectable but she is not marked as present')
             end
           end
           
