@@ -75,7 +75,7 @@ module Isi
           # Tells the linker that a buddy is directly connectable.
           def buddy_connectable bid
             # first of all means that medium for that buddy is itself
-            get_medium_entry(bid).unshift(Hash[:mbid, bid, :hops, nil])
+            get_medium_entry(bid).unshift(Hash[:mbid, bid, :hops, 0])
             # secondly it is present, but that is a consequence of the above
           end
           
