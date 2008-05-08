@@ -65,22 +65,38 @@ module Isi
           
           private
           def assertions_after_Aundrey
+            # make checks for buddies other than Aundrey
             for bid in BIDs do 
               unless bid == Aundrey
+                # They must not be present
                 assert(!@link.buddy_present?(bid), bid +
                   ' not supposed to be ' +
                   'known as present yet, but is marked so')
+                # Their address must be one of the provided ones
                 @bens[bid].length.times do |_retry|
-                  assert(@link.get_address_of(bid, _retry).nil?,
-                      "Not present buddy(#{bid})'s #{_retry}th address is " +
-                      'not nil')
+                  assert(@bens[bid].
+                      include?(a = @link.get_address_of(bid, _retry)),
+                      "bid(#{bid})'s #{_retry}th address (#{a}) is not " +
+                      'found in buddy book data (' + @bens.inspect + ')')
                 end
+                # Retrying too much for an address must return nil
+                assert((a = @link.get_address_of(bid, @bens[bid].length)).nil?,
+                    "bid(#{bid})'s #{@bens[bid].length}th address (#{a}) " +
+                    'should be null')
+                # we know no mediums for those buddies yet
+                assert((a = @link.get_medium_for(bid)).nil?,
+                    "medium for buddy #{bid} should be unknown but is " +a.to_s)
               end
             end
             assert(@link.buddy_present?(Aundrey), 'Aundrey is directly ' +
                 'connectable but she is not marked as present')
             assert(@bens[Aundrey].include?(@link.get_address_of(Aundrey)),
                 "Address of #{Aundrey} comes from space")
+            assert(@link.get_medium_for(Aundrey) == Aundrey,
+                "#{Aundrey} is not the medium for herself although she is " +
+                'directly connectable')
+            assert((a = @link.cut_off_buddies).empty?, 
+                "Nobody should be cut off yet: #{a}")
           end
           
         end

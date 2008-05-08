@@ -51,18 +51,14 @@ module Isi
           # returns nil.
           def get_address_of bid, _retry = 0
             special = @special_addresses[bid]
-            normal  = @bbq[bid].addresses
-            # if retry is >0 it means some address is faulty, we should mark
-            # that.
-            # For special addresses, just remove them. For address book addresses
-            # rearrage them
-            if _retry > 0 then
-              case
-              when special then special.shift
-              when normal then normal.push normal.shift
-              end
-            end
-            return special ? special.first : normal ? normal.first : nil
+            entry = @bbq[bid]
+            normal  = if entry.nil? then nil else entry.addresses end
+            # TODO _retry should rearrange the addresses
+            return case
+                when special then special.at _retry
+                when normal  then normal.at _retry
+                else nil
+                end
           end
           
           # Returns the medium buddy for the given bid. If it is not known,
