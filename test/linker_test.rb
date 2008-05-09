@@ -68,6 +68,18 @@ module Isi
               @link.buddy_is_present new_present, Aundrey, 1
               assertions_after_Aundrey_hop_1_group presents
             end
+            # later (for no reason [this would normally not happen])
+            # chandra, kostas, pekka and steve say that they are MIDs for
+            # each other. All of them have hops>1 because they all MID
+            # through Aundrey. So this should not affect the assertions of
+            # the previous step at all.
+            loles = [Chandra, Kostas, Pekka, Steve]
+            for lola in loles do
+              for loli in loles-[lola] do
+                @link.buddy_is_present loli, lola, 2
+                assertions_after_Aundrey_hop_1_group(presents)
+              end
+            end
           end
           
           private

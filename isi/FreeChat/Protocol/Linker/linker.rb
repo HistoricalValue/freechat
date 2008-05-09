@@ -90,7 +90,7 @@ module Isi
             enum = Enumerable::Enumerator.new entry
             begin while true do
                     raise StopIteration if hops < enum.next[:hops]
-                    insi += 0
+                    insi += 1
                   end
             rescue StopIteration => e
             end
