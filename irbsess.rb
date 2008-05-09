@@ -44,3 +44,10 @@ def fct
   }
   p v
 end
+
+def et
+	enum = Enumerable::Enumerator.new []
+	while true do 
+		puts 'lola' if enum.next
+	end
+end

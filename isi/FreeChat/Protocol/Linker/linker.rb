@@ -61,11 +61,16 @@ module Isi
                 end
           end
           
+          # call-seq:
+          #     get_medium_for(bid) => {:mbid => MBID, :hops => hops}
+          # 
           # Returns the medium buddy for the given bid. If it is not known,
-          # it returns nil
+          # it returns nil.
           def get_medium_for bid
-            medium = get_medium_entry(bid).first
-            return medium[:mbid] unless medium.nil?
+            medium = @mediums[bid]
+            return nil unless medium
+            medium = medium.first
+            return medium unless medium.nil?
           end
           
           # Tells the linker that a buddy is directly connectable.
@@ -89,7 +94,7 @@ module Isi
                   end
             rescue StopIteration => e
             end
-            entry.insert insi, Hash[:mdib, mbid, :hops, hops]
+            entry.insert insi, Hash[:mbid, mbid, :hops, hops]
           end
           
           # Returns true if the buddy is present (there is a medium buddy
@@ -117,7 +122,7 @@ module Isi
           # Notifies the linker that _mbid_ has failed as a medium for buddy
           # _bid_. This will probably mark bid as cut off.
           def buddy_medium_failure mbid, bid
-            entry = get_medium_entry bid
+            entry = @mediums[bid]
             entry.reject! { |medium| medium[:mbid] == mbid }
           end
           
