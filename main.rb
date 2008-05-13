@@ -10,7 +10,6 @@ $ENV = {}
 
 require 'trunk/isi/freechat'
 
-bitch = Isi::FreeChat::Protocol::Bitch::Bitch.new
-p bitch
+bitch = Isi::FreeChat::Protocol::Bitch::Bitch.new 'Isi'
 
 puts "THE END"
