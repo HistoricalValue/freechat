@@ -11,5 +11,12 @@ $ENV = {}
 require 'trunk/isi/freechat'
 
 bitch = Isi::FreeChat::Protocol::Bitch::Bitch.new 'Isi'
+bitches = Hash['Isi', bitch]
+
+# create a new bitch for each person in the addr book
+bitch.bbq.each { |id, addresses| 
+  bitches[id] = Isi::FreeChat::Protocol::Bitch::Bitch.new id unless id == 'Isi'
+}
+for name, bitch in bitches do puts "Closing down #{name}"; bitch.bye end
 
 puts "THE END"

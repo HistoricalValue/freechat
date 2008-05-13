@@ -26,6 +26,11 @@ module Isi
                 @po, @link, @ui)
             @ui.b(FreeChatUI::FINER, 'Created message centre')
           end
+          attr_reader :bbq
+          
+          def bye
+            @po.close_down
+          end
           
           private
           def loadSettings settings_path
