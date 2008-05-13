@@ -34,14 +34,19 @@ module Isi
           @logger.level = Logger::INFO
           # More specific loggers
           @receiver_logger = Logger.new STDERR
-          @receiver_logger.level = Logger::WARN
+          @receiver_logger.level = Logger::DEBUG
           @server_logger = Logger.new STDERR
-          @server_logger.level = Logger::WARN
+          @server_logger.level = Logger::DEBUG
           
           @connections = {}
           @connections_mutex = Mutex.new
           # Message receivers, must have method 'message_received'
-          @message_receivers = message_receivers
+          @message_receivers = (mrs = Array.try_convert(message_receivers) ;
+              mrs = message_receivers unless mrs
+              if mrs.respond_to?(:to_a) then mrs = mrs.to_a
+                                        else mrs = Array[mrs]
+                                        end
+              )
           @message_receivers_mutex = Mutex.new
           # Clearing Thread - check for idle connections and close them
           @cleaner_lambda = lambda {
@@ -64,6 +69,8 @@ module Isi
           
 #          @server_socket = TCPServer.new my_addr.port
           @server_socket = Socket.new AF_INET, SOCK_STREAM, 0
+          @server_socket.setsockopt Socket::SOL_SOCKET, Socket::SO_REUSEADDR,
+              true
           sockaddr = Socket.pack_sockaddr_in my_addr.port, my_addr.ip
           @server_socket.bind sockaddr
           @server_socket.listen 5
@@ -83,7 +90,7 @@ module Isi
             raise 'Length <= 0' if length <= 0
             
             buffer[0..3] = ''
-            recv client, length, buffer
+            recv client, length-buffer.length, buffer
             message = buffer[0..length-1]
             buffer[0..length-1] = ''
             @server_logger.debug('server') {
@@ -105,6 +112,7 @@ module Isi
               peer.do_not_reverse_lookup = true
               peer_port, peer_ip = Socket.unpack_sockaddr_in peer_name
               addr = Address.new peer_ip, peer_port
+              @receiver_logger.debug("Accepted connection from #{addr}")
               lock_connections { |connections|
                 connections[addr] = [peer, DateTime.now]
               }
@@ -132,7 +140,11 @@ module Isi
         # === Throws
         # Errno::ECONNREFUSED
         def send_to addr, data
+          len_bytes = data.bytesize.bytes
+          len_bytes[len_bytes.length .. 3] = Array.new(4-len_bytes.length, 0)
           connection = get_connection addr
+          connection.at(0).write s=String::from_bytes(len_bytes)
+          p s
           connection.at(0).write data
           connection[1] = DateTime.now
         end

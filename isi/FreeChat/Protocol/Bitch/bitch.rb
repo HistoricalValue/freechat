@@ -4,6 +4,7 @@ module Isi
       module Bitch
         class Bitch
           require 'pathname'
+          include Isi::FreeChat
           
           DefaultSettingsPath = Pathname($ENV['HOME']) + '.config' + 'freechat'
           def initialize my_id,
@@ -26,13 +27,17 @@ module Isi
                 @po, @link, @ui)
             @ui.b(FreeChatUI::FINER, 'Created message centre')
           end
-          attr_reader :bbq
+          attr_reader :bbq, :po, :mc, :link
           
           def bye
             @po.close_down
           end
           
-          private
+          def message_received addr, data
+            @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{data}")
+          end
+          
+          private ##############################################################
           def loadSettings settings_path
             settings_path.mkpath
             bbq_path = settings_path + 'bbq.str'
