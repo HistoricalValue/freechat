@@ -13,7 +13,7 @@ module Isi
         require FreeChat::ModuleRootDir + freechat_r
       end
       # Required modules in this module
-      reqs = ['linker', 'message_centre']
+      reqs = ['linker', 'message_centre', 'bitch']
       for r in reqs do
         require ModuleRootDir + r
       end
