@@ -10,13 +10,23 @@ module Isi
             @ui = ui
             # Remember...
             loadSettings settings_path
+            # A delicate hierarchy of a fragile artifact...
+            # Post office
+            @po = Isi::FreeChat::PostOffice::PostOffice::new(
+                Isi::FreeChat::PostOffice::Address::new('127.0.0.1', 50000),
+                self)
+            # Linker
+            @link = Isi::FreeChat::Protocol::Linker::Linker::new(@bbq, @ui)
+            # Messace centre
+            @mc = Isi::FreeChat::Protocol::MessageCentre::MessageCentre::new(
+                @po, @link, @ui)
           end
           
           private
           def loadSettings settings_path
             settings_path.mkpath
             loadBBQ(settings_path + 'bbq.str')
-            p @bbq
+            
           end
           
           def loadBBQ bbq_path
