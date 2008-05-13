@@ -9,11 +9,11 @@ module Isi
         # 
         # It is also the place to get an address for a bid from.
         # 
-        # === Arguments
-        # * bbq : a BuddyBook
-        # * po : a PostOffice
-        # * ui : a FreeChatUI
         class Linker
+          # === Arguments
+          # * bbq : a BuddyBook
+          # * po : a PostOffice
+          # * ui : a FreeChatUI
           def initialize bbq, ui = nil
             @bbq = bbq
             @ui = ui

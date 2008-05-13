@@ -51,11 +51,11 @@ module Isi
           def test_scenario1
             # Buddy graph:
             #
-            #          ,--- Marika    Chandra
+            #          ,--- Marika -- Chandra
             # Steve --<                 |
             #   |      `------------ Aundrey --- Kostas
             #   |                       |   `---.
-            #  Miranda                Pekka      `--- "I"--- Lea
+            #  Miranda --------------- Pekka      `--- "I"
             #
             # "me" connects directly to Aundrey
             @link.buddy_connectable Aundrey ; assertions_after_Aundrey
