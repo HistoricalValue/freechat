@@ -4,7 +4,7 @@ module Isi
       module Bitch
         class Bitch
           require 'pathname'
-          include Isi::FreeChat
+          include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre
           
           DefaultSettingsPath = Pathname($ENV['HOME']) + '.config' + 'freechat'
           def initialize my_id,
@@ -34,7 +34,8 @@ module Isi
           end
           
           def message_received addr, data
-            @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{data}")
+            @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{
+                @mc.message_to_s(Message::new(*Message::deserialise(data)))}")
           end
           
           private ##############################################################

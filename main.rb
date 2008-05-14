@@ -33,10 +33,15 @@ Isi_ = Isi::FreeChat::Protocol::Bitch::Bitch.new(Isi_id, Ui)
 Chandra = Isi::FreeChat::Protocol::Bitch::Bitch.new(Chandra_id, Ui)
 bitches = Hash[Isi_id, Isi_, Chandra_id, Chandra]
 
-# Chandra speak to isi plx
+# Chandra says hello to isi
 Chandra.po.send_to(
-    Chandra.bbq[Isi_id].addresses.first,
+    Chandra.link.get_address_of(Isi_id, 0),
     Chandra.mc.create_message(STM_HELLO, 'rcp' => Isi_id).serialise)
+# Isi says hi back
+Isi_.po.send_to(
+    Isi_.link.get_address_of(Chandra_id, 0),
+    Isi_.mc.create_message(STM_MESSAGE, 'cnt' => 'screw you, chandra, we are over',
+        'rcp' => Chandra_id, 'frm' => Isi_id).serialise)
 
 Ui.m "Hit enter to close down"
 not_ok = true

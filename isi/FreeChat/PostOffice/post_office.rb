@@ -34,9 +34,9 @@ module Isi
           @logger.level = Logger::INFO
           # More specific loggers
           @receiver_logger = Logger.new STDERR
-          @receiver_logger.level = Logger::DEBUG
+          @receiver_logger.level = Logger::WARN
           @server_logger = Logger.new STDERR
-          @server_logger.level = Logger::DEBUG
+          @server_logger.level = Logger::WARN
           
           @connections = {}
           @connections_mutex = Mutex.new
@@ -144,7 +144,6 @@ module Isi
           len_bytes[len_bytes.length .. 3] = Array.new(4-len_bytes.length, 0)
           connection = get_connection addr
           connection.at(0).write s=String::from_bytes(len_bytes)
-          p s
           connection.at(0).write data
           connection[1] = DateTime.now
         end

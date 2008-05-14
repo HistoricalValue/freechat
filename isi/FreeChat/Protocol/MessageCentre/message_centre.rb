@@ -242,6 +242,23 @@ module Isi
             
             return Message.new(mtype, id, args, restrictions)
           end
+
+          # Transforms the given message to a human friendly string (it loves
+          # humans).
+          def message_to_s msg
+            "#{type_to_s msg}:#{Hash[msg.each_argument.to_a].inspect}"
+          end
+          
+          # Transforms a message type to a string. The resulting string is in 
+          # fact the name of the constant for the message type in module
+          # +MessageTypes+.
+          # NOTICE: the argument of this method is a message and not a message
+          # type. Message type is supposedly an oblique concept.
+          def type_to_s msg
+            tn = message_types_with_names
+            pair = tn.rassoc(normalise_type(msg.type))
+            pair.at(0).to_s if pair
+          end
           
           private ##############################################################
           def createID seed=nil
@@ -258,6 +275,24 @@ module Isi
           # * message : a message of the appropriate class
           def post_message recipient, message
             @po.send_to @linker.get_address_of(recipient), message.serialise
+          end
+          
+          # Assumes that message type has not been tampered with and tried
+          # to convert it back to integer. All message fields are read as
+          # strings from the serialised data and are not converted back
+          # automatically by +Message#deserialise+ because it cannot know what
+          # the message creator had in mind for each field. We (as the
+          # message centre) are the creator of messages though and we know that
+          # (in normal cases) message type should be an Integer. The string
+          # probably holds the integer bytes, and as such we will try to convert
+          # it back.
+          def normalise_type msg_type
+            case
+            when msg_type.class <= String then
+              return Integer::from_bytes(msg_type.bytes.to_a)
+            when msg_type.class <= Integer then return msg_type
+            else raise 'Unknown msg_type'
+            end
           end
           
           # My loggings
