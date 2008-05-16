@@ -38,8 +38,15 @@ module Isi
             @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{
                 @mc.message_to_s(Message::new(*Message::deserialise(data)))}")
           end
+          # A new connection is untrusted until a message of type
+          # +STM_PRESENT+ comes from it with 'rcp' being us and 'bid' being
+          # some buddy. Then the connection becomes trusted and is marked as
+          # being used from buddy found in argument 'bid' of the message.
+          # If anything else other than such a type of message is received
+          # from that address before this message, post office is istructed
+          # to close the connection.
           def connection_received addr
-            
+            @link.register_untrusted_address addr
           end
           private ##############################################################
           def loadSettings settings_path
