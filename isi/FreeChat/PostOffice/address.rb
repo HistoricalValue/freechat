@@ -19,6 +19,16 @@ module Isi
           "#{ip}:#{port}"
         end
         
+        # Returns true if those two addresses have the same IP and port
+        def eql? other
+#          puts "#{self.inspect}(#{self.object_id}).eql? #{other.inspect}" +
+#              "(#{other.object_id})"
+          return false unless other.is_a?(self.class)
+          return @ip.eql?(other.ip) && @port.eql?(other.port)
+        end
+        alias_method(:==,  :eql?)
+        alias_method(:===, :eql?)
+        
         Isi::db_bye __FILE__, name
       end
     end
