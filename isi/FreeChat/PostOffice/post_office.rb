@@ -24,8 +24,8 @@ module Isi
         # receive messages to)
         # * packet_receivers : objects which will be notified when a
         # packet or a connection is received. They must respond to
-        # 'packet_received' and 'connection_received'. For more info see
-        # +add_packet_receiver+
+        # 'packet_received', 'connection_received' and 'created_connection'.
+        # For more info see +add_packet_receiver+
         def initialize my_addr, packet_receivers=[]
           # First, create my logger and use it
           @logger = Logger.new STDERR
@@ -173,6 +173,11 @@ module Isi
         # 'connection_received' which will be called when someone connects to
         # this Post office. The argument for this method is an +Address+ object
         # which is the address from which the connection is made.
+        #
+        # The message receiver must also respond to the method
+        # 'created_connection' which is called when a new connection is made
+        # to some address. The argument passed to this method is the address
+        # to which the new connection has been made.
         def add_packet_receiver rcvr
           @packet_receivers << rcvr
           return nil
@@ -212,11 +217,17 @@ module Isi
         # and then returns it.
         def get_connection addr
           connection = nil
+          created = false
           lock_connections { |connections|
             unless connection = connections[addr] then
               connection = (connections[addr] = create_connection_data addr)
+              created = true
             end
           }
+          # if a new connection was created we have to notify the packet rcvrs
+          if created then for pr in @packet_receivers do
+            pr.created_connection addr
+          end
           return connection
         end
         
