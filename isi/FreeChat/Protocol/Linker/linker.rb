@@ -34,7 +34,7 @@ module Isi
           # messages to/through that buddy.
           def buddy_using_address bid, addr
             addrs = @special_addresses[bid]
-            addrs = [] unless addrs
+            @special_addresses[bid] = addrs = [] unless addrs
             addrs.unshift addr
             # assert
             raise unless addr.is_a? Isi::FreeChat::PostOffice::Address
@@ -64,6 +64,7 @@ module Isi
                 end
           end
 
+          @@array_of_a_nil_returning_lambda = lambda { [ nil ] }
           # Returns the buddy-id of the buddy who is supposed to be using the
           # given address currently. It could be a special address that has
           # been registered earlier by calling +buddy_using_address+ or it
@@ -73,10 +74,12 @@ module Isi
           # returned.
           def get_buddy_using_address addr
             raise UntrustedAddressUse if address_untrusted?(addr)
-            result = @special_addresses.rassoc addr
+            result = @special_addresses.find { |bid, addresses|
+              addresses.include? addr
+            }
             return result.first if result # special address using buddy
             # (result = nil) No special address like that; find from BBQ
-            @bbq.find {|id, entry|
+            @bbq.find(@@array_of_a_nil_returning_lambda) {|id, entry|
               # don't forget, bbq is a hash
               entry.addresses.include?(addr)
             }.first
