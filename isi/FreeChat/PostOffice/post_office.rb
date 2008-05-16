@@ -201,7 +201,11 @@ module Isi
         
         private ################################################################
         def create_connection addr
-          return TCPSocket.new(addr.ip, addr.port)
+          result = Socket::new AF_INET, SOCK_STREAM, 0
+          result.do_not_reverse_lookup = true
+          sockaddr = Socket::pack_sockaddr_in addr.port, addr.ip
+          result.connect sockaddr
+          return result
         end
         
         # Creates _new_ connection data (AND NEW CONNECTION).
@@ -224,10 +228,15 @@ module Isi
               created = true
             end
           }
-          # if a new connection was created we have to notify the packet rcvrs
-          for pr in @packet_receivers do
-            pr.created_connection addr
-          end if created
+          # if a new connection was created ...
+          if created then
+            # we have to start a server for it
+            Thread.new(connection.first, addr, &@server_lambda)
+            # we have to notify the packet rcvrs
+            for pr in @packet_receivers do
+              pr.created_connection addr
+            end 
+          end
           return connection
         end
         
