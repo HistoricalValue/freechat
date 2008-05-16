@@ -260,6 +260,17 @@ module Isi
             pair.at(0).to_s if pair
           end
           
+          # Returns a new *+Message+* from the serialised data provided.
+          # 
+          # Notice that this is quite different from +Message::deserialise+.
+          # It does not return an array of message data but a ready message.
+          # It also transforms message_type to the right type.
+          def deserialise sdata
+            type, mid, args = Message::deserialise sdata
+            type = Integer::from_bytes(type.bytes.to_a)
+            return Message::new(type, mid, args)
+          end
+          
           private ##############################################################
           def createID seed=nil
             seed = seed ? @digester.digest(seed + @id_seed) : @id_seed
