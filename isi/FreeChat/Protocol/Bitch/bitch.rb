@@ -48,6 +48,16 @@ module Isi
           def connection_received addr
             @link.register_untrusted_address addr
           end
+          # Notification from the post office that a new connection has been
+          # made to the given address. Assuming that we only connect to other
+          # buddies running the same software as we are (...), we have to send
+          # an identification message as described in +connection_received_+.
+          def created_connection addr
+            # send identification message
+            @po.send_to(addr,
+                @mc.create_message(MessageTypes::STM_PRESENT,
+                'bid' => @id, 'rcp' => @link.get_buddy_using_address(addr)))
+          end
           private ##############################################################
           def loadSettings settings_path
             settings_path.mkpath
