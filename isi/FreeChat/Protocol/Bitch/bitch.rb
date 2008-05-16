@@ -12,6 +12,11 @@ module Isi
               settings_path = DefaultSettingsPath
             @ui = ui
             @id = my_id
+            # Mutexes
+            
+            # A mutex that synchronises all the event methods that Post Office
+            # calls
+            @po_interface_mutex = Mutex.new
             # Remember...
             loadSettings settings_path
             # A delicate hierarchy of a fragile artifact...
@@ -34,10 +39,43 @@ module Isi
             @po.close_down
           end
           
-          # Interface for post office
+          # Interface for post office --everything synchronised
+          
+          # Received a packet from post office. Deal with it.
           def packet_received addr, data
-            @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{
-                @mc.message_to_s(Message::new(*Message::deserialise(data)))}")
+            @po_interface_mutex.synchronize {
+              packet_received_synchronised addr, data
+            }
+          end
+          def packet_received_synchronised addr, data
+            msg = @mc.deserialise data
+            if @link.address_untrusted?(addr) then
+              # this better be an identification message
+              if  msg.type == MessageTypes::STM_PRESENT &&
+                  msg['rcp'] == @id
+              then
+                @link.remove_untrusted_address addr
+                @link.buddy_using_address msg['bid'], addr
+                @ui.b(FreeChatUI::INFO, "Accepted #{msg['bid']} from address #{
+                    addr}")
+              else # message from untrusted address is not STM_PRESENT for us...
+                # kill
+                @po.close_connection addr
+                @ui.b(FreeChatUI::WARNING, "Killing untrusted address #{addr
+                    }. message: #{@mc.message_to_s msg}")
+                @ui.b(FreeChatUI::DEBUG, "[type(#{msg.type} #{@mc.type_to_s msg
+                    }) == STM_PRESENT(#{MessageTypes::STM_PRESENT})]=#{
+                    msg.type == MessageTypes::STM_PRESENT} && [rcp(#{msg['rcp']
+                    }) == id(#{@id})]=#{msg['rcp'] == @id} = #{
+                    msg.type == MessageTypes::STM_PRESENT &&
+                    msg['rcp'] == @id}")
+              end
+            else
+              # trusted address
+              @ui.bitch_message(FreeChatUI::INFO, "received: #{
+                  @link.get_buddy_using_address addr} -> #{
+                  @mc.message_to_s(msg)}")
+            end
           end
           # A new connection is untrusted until a message of type
           # +STM_PRESENT+ comes from it with 'rcp' being us and 'bid' being
@@ -47,6 +85,11 @@ module Isi
           # from that address before this message, post office is istructed
           # to close the connection.
           def connection_received addr
+            @po_interface_mutex.synchronize {
+              connection_received_synchronised addr
+            }
+          end
+          def connection_received_synchronised addr
             @link.register_untrusted_address addr
           end
           # Notification from the post office that a new connection has been
@@ -54,6 +97,11 @@ module Isi
           # buddies running the same software as we are (...), we have to send
           # an identification message as described in +connection_received_+.
           def created_connection addr
+            @po_interface_mutex.synchronize {
+              created_connection_synchronised addr
+            }
+          end
+          def created_connection_synchronised addr
             # send identification message
             @po.send_to(addr,
                 @mc.create_message(MessageTypes::STM_PRESENT,
