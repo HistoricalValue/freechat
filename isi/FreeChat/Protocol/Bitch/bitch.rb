@@ -33,11 +33,14 @@ module Isi
             @po.close_down
           end
           
-          def message_received addr, data
+          # Interface for post office
+          def packet_received addr, data
             @ui.bitch_message(FreeChatUI::INFO, "received: #{addr} -> #{
                 @mc.message_to_s(Message::new(*Message::deserialise(data)))}")
           end
-          
+          def connection_received addr
+            
+          end
           private ##############################################################
           def loadSettings settings_path
             settings_path.mkpath

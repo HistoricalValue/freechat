@@ -21,14 +21,12 @@ module Isi
 
         # === Arguments
         # * my_addr : An +Address+ object which indicates our address (to
-        #   receive messages to)
-        # * message_receivers : objects which will be notified when a
-        #   packet is received. They must respond_to 'message_received'.
-        #   When a message is received that method is called with two
-        #   arguments: an Address object, indicating from which address
-        #   this packet arrived, and a String containing the binary data
-        #   of the packet.
-        def initialize my_addr, message_receivers=[]
+        # receive messages to)
+        # * packet_receivers : objects which will be notified when a
+        # packet or a connection is received. They must respond to
+        # 'packet_received' and 'connection_received'. For more info see
+        # +add_packet_receiver+
+        def initialize my_addr, packet_receivers=[]
           # First, create my logger and use it
           @logger = Logger.new STDERR
           @logger.level = Logger::INFO
@@ -41,13 +39,13 @@ module Isi
           @connections = {}
           @connections_mutex = Mutex.new
           # Message receivers, must have method 'message_received'
-          @message_receivers = (mrs = Array.try_convert(message_receivers) ;
-              mrs = message_receivers unless mrs
+          @packet_receivers = (mrs = Array.try_convert(packet_receivers) ;
+              mrs = packet_receivers unless mrs
               if mrs.respond_to?(:to_a) then mrs = mrs.to_a
                                         else mrs = Array[mrs]
                                         end
               )
-          @message_receivers_mutex = Mutex.new
+          @packet_receivers_mutex = Mutex.new
           # Clearing Thread - check for idle connections and close them
           @cleaner_lambda = lambda {
             to_remove = []
@@ -96,9 +94,9 @@ module Isi
             @server_logger.debug('server') {
               "received message: #{message}"
             }
-            @message_receivers_mutex.synchronize {
-              for mr in @message_receivers do
-                mr.message_received addr, message
+            @packet_receivers_mutex.synchronize {
+              for mr in @packet_receivers do
+                mr.packet_received addr, message
               end
             }
             @server_logger.debug('server') { 'forwarded to MRs' }
@@ -115,6 +113,10 @@ module Isi
               @receiver_logger.debug("Accepted connection from #{addr}")
               lock_connections { |connections|
                 connections[addr] = [peer, DateTime.now]
+              }
+              # Notify packet receivers before starting the server thread
+              @packet_receivers_mutex.synchronize {
+                for pr in @packet_receivers do pr.connection_received addr end
               }
               Thread.new(peer, addr, &@server_lambda)
             rescue Errno::EAGAIN, Errno::EWOULDBLOCK
@@ -164,15 +166,20 @@ module Isi
         # when a packet is received with the following arguments:
         # * An Address object indicating from which Address this packet arrived
         # * A String containing the binary data of the packet
-        def add_message_receiver rcvr
-          @message_receivers << rcvr
+        #
+        # The message receiver must also respond to the method
+        # 'connection_received' which will be called when someone connects to
+        # this Post office. The argument for this method is an +Address+ object
+        # which is the address from which the connection is made.
+        def add_packet_receiver rcvr
+          @packet_receivers << rcvr
           return nil
         end
         # Removes the specified receiver from the list  of receivers which
         # get notified when a packet arrives. Comparison is done by method
         # '=='.
-        def remove_message_receiver rcvr
-          @message_receivers.reject! { |mr| mr == rcvr }
+        def remove_packet_receiver rcvr
+          @packet_receivers.reject! { |mr| mr == rcvr }
           return nil
         end
         
