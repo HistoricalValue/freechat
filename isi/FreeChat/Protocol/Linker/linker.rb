@@ -24,6 +24,9 @@ module Isi
             # Special addresses: Maps bid to address which should be used
             # instead of the ones in address book
             @special_addresses = {}
+            # Untrusted addresses is simply an array of addresses which we
+            # don't know which buddy (or whom in general) is using it
+            @untrusted_addresses = []
           end
           
           # Means that the given buddy has initiated a connection from the
@@ -59,6 +62,36 @@ module Isi
                 when normal  then normal.at _retry
                 else nil
                 end
+          end
+
+          # Returns the buddy-id of the buddy who is supposed to be using the
+          # given address currently. It could be a special address that has
+          # been registered earlier by calling +buddy_using_address+ or it
+          # can be a regular address for a buddy found in the address book.
+          #
+          # If no buddy is found using this address (anywhere), then _nil_ is
+          # returned.
+          def get_buddy_using_address addr
+            raise UntrustedAddressUse if address_untrusted?(addr)
+            result = @special_addresses.rassoc addr
+            return result.first if result # special address using buddy
+            # (result = nil) No special address like that; find from BBQ
+            @bbq.find {|entry| entry.addresses.include?(addr)}
+          end
+          
+          # Registers the given address as untrusted. If it used in any
+          # operation (other than "remove_untrusted_address") an 
+          # +UntrustedAddressUsed+ error will be raised.
+          def register_untrusted_address addr
+            @untrusted_addresses << addr
+          end
+          # Returns true if given address is currently marked as untrusted
+          def address_untrusted? addr
+            @untrusted_addresses.include? addr
+          end
+          # Removes an address from the list of untrusted addresses.
+          def remove_untrusted_address addr
+            @untrusted_addresses.delete addr
           end
           
           # call-seq:
