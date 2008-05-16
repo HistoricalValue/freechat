@@ -92,6 +92,7 @@ module Isi
           def address_untrusted? addr
             @untrusted_addresses.include? addr
           end
+          alias_method :untrusted_address?, :address_untrusted?
           # Removes an address from the list of untrusted addresses.
           def remove_untrusted_address addr
             @untrusted_addresses.delete addr
