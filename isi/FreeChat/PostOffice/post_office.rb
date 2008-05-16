@@ -36,6 +36,8 @@ module Isi
           @server_logger = Logger.new STDERR
           @server_logger.level = Logger::WARN
           
+          # @connections is a hash like this:
+          #     {addr => [socket_stream, last_used_datetime] }
           @connections = {}
           @connections_mutex = Mutex.new
           # Message receivers, must have method 'message_received'
@@ -181,6 +183,15 @@ module Isi
         def remove_packet_receiver rcvr
           @packet_receivers.reject! { |mr| mr == rcvr }
           return nil
+        end
+        
+        # Violently and immediately close the connection(s) to or from _addr_.
+        @@void_connection = [Object.new, DateTime.civil]
+        @@void_connection.at(0).define_singleton_method(:close,{})
+        def close_connection addr
+          lock_connections { |connections|
+            connections.delete(addr){@@void_connection}.at(0).close
+          }
         end
         
         private ################################################################
