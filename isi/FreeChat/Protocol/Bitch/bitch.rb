@@ -6,7 +6,7 @@ module Isi
           require 'pathname'
           include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre
           
-          DefaultSettingsPath = Pathname($ENV['HOME']) + '.config' + 'freechat'
+          DefaultSettingsPath = Pathname(ENV['HOME']) + '.config' + 'freechat'
           def initialize my_id,
               ui = Isi::FreeChat::FreeChatUI::new,
               settings_path = DefaultSettingsPath
