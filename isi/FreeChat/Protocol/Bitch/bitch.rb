@@ -11,6 +11,7 @@ module Isi
               ui = Isi::FreeChat::FreeChatUI::new,
               settings_path = DefaultSettingsPath
             @ui = ui
+            @id = my_id
             # Remember...
             loadSettings settings_path
             # A delicate hierarchy of a fragile artifact...
@@ -27,7 +28,7 @@ module Isi
                 @po, @link, @ui)
             @ui.b(FreeChatUI::FINER, 'Created message centre')
           end
-          attr_reader :bbq, :po, :mc, :link
+          attr_reader :bbq, :po, :mc, :link, :id
           
           def bye
             @po.close_down
@@ -56,7 +57,9 @@ module Isi
             # send identification message
             @po.send_to(addr,
                 @mc.create_message(MessageTypes::STM_PRESENT,
-                'bid' => @id, 'rcp' => @link.get_buddy_using_address(addr)))
+                    'bid' => @id, 'rcp' => @link.get_buddy_using_address(addr)
+                    ).serialise
+                )
           end
           private ##############################################################
           def loadSettings settings_path

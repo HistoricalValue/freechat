@@ -192,7 +192,7 @@ module Isi
         
         # Violently and immediately close the connection(s) to or from _addr_.
         @@void_connection = [Object.new, DateTime.civil]
-        @@void_connection.at(0).define_singleton_method(:close,{})
+        @@void_connection.at(0).define_singleton_method(:close){}
         def close_connection addr
           lock_connections { |connections|
             connections.delete(addr){@@void_connection}.at(0).close
@@ -225,9 +225,9 @@ module Isi
             end
           }
           # if a new connection was created we have to notify the packet rcvrs
-          if created then for pr in @packet_receivers do
+          for pr in @packet_receivers do
             pr.created_connection addr
-          end
+          end if created
           return connection
         end
         

@@ -76,7 +76,10 @@ module Isi
             result = @special_addresses.rassoc addr
             return result.first if result # special address using buddy
             # (result = nil) No special address like that; find from BBQ
-            @bbq.find {|entry| entry.addresses.include?(addr)}
+            @bbq.find {|id, entry|
+              # don't forget, bbq is a hash
+              entry.addresses.include?(addr)
+            }.first
           end
           
           # Registers the given address as untrusted. If it used in any
