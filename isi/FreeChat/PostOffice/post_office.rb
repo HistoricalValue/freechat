@@ -127,10 +127,18 @@ module Isi
               @receiver_logger.warn {"Something else@!! #{e.inspect}"}
             end while true
           }
-          @receiver_thread = Thread.new(&@receiver_lambda)
+          @open = false # post office is closed
         end
         
+        # Start accepting connections.
+        def open_up
+          @open = true
+          @receiver_thread = Thread.new(&@receiver_lambda)
+        end
+        # Closes all connections. Raises a
+        # +PostOfficeClosed+ error if post office has not been +open_up+'ed.
         def close_down
+          raise PostOfficeClosed unless @open
 #          @cleaner_thread.kill
           @receiver_thread.kill
           @server_socket.close
@@ -141,9 +149,12 @@ module Isi
           }
         end
         
+        # Sends the specified binary data to the given address. Raises a
+        # +PostOfficeClosed+ error if post office has not been +open_up+'ed.
         # === Throws
         # Errno::ECONNREFUSED
         def send_to addr, data
+          raise PostOfficeClosed unless @open
           len_bytes = data.bytesize.bytes
           len_bytes[len_bytes.length .. 3] = Array.new(4-len_bytes.length, 0)
           connection = get_connection addr
