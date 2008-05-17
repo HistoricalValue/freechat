@@ -32,9 +32,16 @@ module Isi
             @mc = Isi::FreeChat::Protocol::MessageCentre::MessageCentre::new(
                 @po, @link, @ui)
             @ui.b(FreeChatUI::FINER, 'Created message centre')
+            
+            # @message_handlers is something like this
+            # {message_type => [handler, handler, ...] }
+            loadMessageHandlers settings_path
+            
+            # open post office - we are ready to go
+            @po.open_up
           end
-          attr_reader :bbq, :po, :mc, :link, :id
-          
+          attr_reader :bbq, :po, :mc, :link, :id, :ui
+
           def bye
             @po.close_down
           end
@@ -71,8 +78,13 @@ module Isi
                     msg['rcp'] == @id}")
               end
             else
-              # trusted address
-              @ui.bitch_message(FreeChatUI::INFO, "received: #{
+              # trusted address - receive message normally.
+              
+              # forward to appropriate message handlers
+              for mh in @message_handlers[msg.type] do
+                mh.message_received addr, msg
+              end
+              @ui.bitch_message(FreeChatUI::DEBUG, "received: #{
                   @link.get_buddy_using_address addr} -> #{
                   @mc.message_to_s(msg)}")
             end
@@ -122,9 +134,7 @@ module Isi
             writeDefaultBBQConfig bbq_path unless (bbq_path.exist? && 
                   bbq_path.size > 0)
             @bbq = Isi::FreeChat::BuddyBook::BuddyBook::new
-            cont = nil
-            bbq_path.open(File::RDONLY) { |fin| cont = fin.read }
-            cont = cont.encode 'ascii'
+            cont = bbq_path.read
             cont = cont.chars
             # FSM!
             state = 'init'
@@ -180,6 +190,57 @@ module Isi
             }
           end
           
+          @@module_name = to_s.sub!(/::\w+$/, '')
+          @@System_message_handlers_config = [
+            (ModuleRootDir + 'system_message_handler').to_path + ' ' +
+                "#{@@module_name}::SystemMessageHandler" + ' ' +
+                MessageTypes::message_types_with_names.map {|name,val| name}.
+                join(' ')
+          ]
+          def loadMessageHandlers config_path
+            handlers_config_path = config_path + 'message_handlers.config'
+            writeDefaultHandlersConfig handlers_config_path unless
+                (handlers_config_path.exist? && handlers_config_path.size > 0)
+            @message_handlers = {}
+            message_names_to_types = MessageTypes::message_types_with_names
+            handler_lines = @@System_message_handlers_config
+            handler_lines.concat handlers_config_path.readlines
+            handler_lines.each { |handler_line|
+              lib, className, types = handler_line.split(/\s+/, 3)
+              require lib
+              klass = nil
+              ObjectSpace.each_object(Class) { |k|
+                if k.to_s == className then klass = k ; break end
+              }
+              if klass.nil? then
+                @ui.b(FreeChatUI::WARNING, "Class #{className
+                    } not found (for message handler)")
+              else
+                types.strip!
+                types = types.split(%r{\s+})
+                handler = klass::new types, self
+                for type in types do
+                  type_val = message_names_to_types[type]
+                  if type_val.nil?
+                  then @ui.b(FreeChatUI::WARNING, "Unknown message type: #{type
+                      }. Ignored.")
+                  else
+                    @message_handlers[type_val] = [] unless
+                        @message_handlers[type_val]
+                    @message_handlers[type_val] << handler
+                    @ui.b(FreeChatUI::FINE, "Registered handler #{klass} (form #{
+                        lib} for #{type}")
+                  end
+                end
+              end
+            }
+          end
+          
+          def writeDefaultHandlersConfig path
+            path.open(File::CREAT|File::WRONLY) {}
+            # no default config
+          end
+
         end
       end
     end

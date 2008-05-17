@@ -30,7 +30,9 @@ module Isi
           
           # Default method which is called when a new message is received.
           # Default implementation (this) simply raises an error.
-          def message_received msg
+          # * addr : is the addr from which the message was received.
+          # * msg : is the message that was received.
+          def message_received addr, msg
             raise 'Unimplemented MessageHandler#message_received() method'
           end
         end

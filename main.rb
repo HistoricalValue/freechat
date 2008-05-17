@@ -8,7 +8,7 @@ $ENV = ENV
 require 'trunk/isi/freechat'
 include Isi, Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre::MessageTypes
 
-$UI_LEVEL = FreeChatUI::DEBUG
+$UI_LEVEL = FreeChatUI::INFO
 class ShutupyUI < Isi::FreeChat::FreeChatUI
   def initialize id, main_on=true, main_level=$UI_LEVEL
     @id = id
@@ -32,7 +32,7 @@ end
 
 Isi_id = 'Isi'; Ευανθια_id = 'Ευανθια'
 Isi_ui = ShutupyUI.new Isi_id; Ευανθια_ui = ShutupyUI.new Ευανθια_id
-Main_ui = ShutupyUI.new 'main'
+Main_ui = ShutupyUI.new 'main', true, FreeChatUI::FINE
 Isi_ = Isi::FreeChat::Protocol::Bitch::Bitch.new(Isi_id, Isi_ui)
 Ευανθια = Isi::FreeChat::Protocol::Bitch::Bitch.new(Ευανθια_id, Ευανθια_ui)
 bitches = Hash[Isi_id, Isi_, Ευανθια_id, Ευανθια]
