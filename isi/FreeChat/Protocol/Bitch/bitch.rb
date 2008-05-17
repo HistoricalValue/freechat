@@ -84,7 +84,7 @@ module Isi
               for mh in @message_handlers[msg.type] do
                 mh.message_received addr, msg
               end
-              @ui.bitch_message(FreeChatUI::DEBUG, "received: #{
+              @ui.bitch_message(FreeChatUI::FINER, "received: #{
                   @link.get_buddy_using_address addr} -> #{
                   @mc.message_to_s(msg)}")
             end
@@ -192,10 +192,9 @@ module Isi
           
           @@module_name = to_s.sub!(/::\w+$/, '')
           @@System_message_handlers_config = [
-            (ModuleRootDir + 'system_message_handler').to_path + ' ' +
-                "#{@@module_name}::SystemMessageHandler" + ' ' +
-                MessageTypes::message_types_with_names.map {|name,val| name}.
-                join(' ')
+            "#{(ModuleRootDir + 'system_message_handler').to_path} #{
+                @@module_name}::SystemMessageHandler #{MessageTypes::
+                message_types_with_names.map{|name,val|name}.join(' ')}"
           ]
           def loadMessageHandlers config_path
             handlers_config_path = config_path + 'message_handlers.config'
