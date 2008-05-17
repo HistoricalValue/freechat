@@ -1,3 +1,4 @@
+# encoding: UTF-8
 $isi = {
   :debug_hello => !true,
   :debug_bye =>   !true,
@@ -29,24 +30,24 @@ class ShutupyUI < Isi::FreeChat::FreeChatUI
   end
 end
 
-Isi_id = 'Isi'; Chandra_id = 'Chandra'
-Isi_ui = ShutupyUI.new Isi_id; Chandra_ui = ShutupyUI.new Chandra_id
+Isi_id = 'Isi'; Ευανθια_id = 'Ευανθια'
+Isi_ui = ShutupyUI.new Isi_id; Ευανθια_ui = ShutupyUI.new Ευανθια_id
 Main_ui = ShutupyUI.new 'main'
 Isi_ = Isi::FreeChat::Protocol::Bitch::Bitch.new(Isi_id, Isi_ui)
-Chandra = Isi::FreeChat::Protocol::Bitch::Bitch.new(Chandra_id, Chandra_ui)
-bitches = Hash[Isi_id, Isi_, Chandra_id, Chandra]
+Ευανθια = Isi::FreeChat::Protocol::Bitch::Bitch.new(Ευανθια_id, Ευανθια_ui)
+bitches = Hash[Isi_id, Isi_, Ευανθια_id, Ευανθια]
 
-# Chandra says hello to isi
-Chandra.po.send_to(
-    Chandra.link.get_address_of(Isi_id, 0),
-    Chandra.mc.create_message(STM_HELLO, 'rcp' => Isi_id).serialise)
+# Isi says hi to Ευανθια
+Isi_.po.send_to(
+    Isi_.link.get_address_of(Ευανθια_id, 0),
+    Isi_.mc.create_message(STM_MESSAGE,'cnt'=>'screw you, Ευανθια, we are over',
+        'rcp' => Ευανθια_id, 'frm' => Isi_id).serialise)
 # wait for it...
 3.downto(1) { |i| Main_ui.m("replying in #{i}..."); sleep 1 }
-# Isi says hi back
-Isi_.po.send_to(
-    Isi_.link.get_address_of(Chandra_id, 0),
-    Isi_.mc.create_message(STM_MESSAGE, 'cnt' => 'screw you, chandra, we are over',
-        'rcp' => Chandra_id, 'frm' => Isi_id).serialise)
+# Ευανθια says hello to isi
+Ευανθια.po.send_to(
+    Ευανθια.link.get_address_of(Isi_id, 0),
+    Ευανθια.mc.create_message(STM_HELLO, 'rcp' => Isi_id).serialise)
 
 Main_ui.m "Hit enter to close down"
 not_ok = true
