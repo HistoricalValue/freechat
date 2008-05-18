@@ -63,6 +63,7 @@ module Isi
                   msg[RCP] == @id
               then
                 @link.remove_untrusted_address addr
+                @link.buddy_connectable msg[BID]
                 @link.buddy_using_address msg[BID], addr
                 @ui.b(FreeChatUI::INFO, "Accepted #{msg[BID]} from address #{
                     addr}")
