@@ -95,7 +95,12 @@ module Isi
                   }
                 end
               end
-              
+            when STM_DIRECT
+              # TODO handle!
+            when REQ_PRESENCE
+              # TODO handle!
+            when REQ_DIRECT
+              # TODO handle!
             end #case message_type
           end #message_received()
           
