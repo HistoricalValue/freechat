@@ -11,6 +11,9 @@ module Isi
           include MessageTypes
           
           # Constructs a new message centre.
+          # Besides the operations described on each method, message centre
+          # also has an attribute, message_store, which is a +Hash+ which
+          # keeps pairs of message-ids and messages.
           #
           # === Arguments
           # * po:      a post office to send messages
@@ -28,6 +31,8 @@ module Isi
             # id_seed is used in generating message IDs which are hopefully
             # spatially and timely unique
             @id_seed = @digester.digest id_seed
+            # Stores pairs of MID-message. Completely manipulated externally.
+            @message_store = {}
             # Stores pairs of MID-BID, where BID is the medium buddy.
             # Message whose MIDs are stored here are considered pending
             # until a delivery report for them arrives. *ONLY* messages
@@ -49,6 +54,7 @@ module Isi
             @logger = Logger.new 'message_centre.log'
             @logger.level = Logger::DEBUG
           end
+          attr_reader :message_store
           
           # Forgets all information about _mid_. If mid is recorded as a
           # native message (originating from this MC) pending for delivery,
