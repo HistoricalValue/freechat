@@ -49,6 +49,8 @@ Isi_.po.send_to(
     Ευανθια.link.get_address_of(Isi_id, 0),
     Ευανθια.mc.create_message(STM_HELLO, 'rcp' => Isi_id).serialise)
 
+Main_ui.m 'Presentos banderos:'
+p Isi_.link.present_buddies.to_a, Ευανθια.link.present_buddies.to_a
 Main_ui.m "Hit enter to close down"
 not_ok = true
 begin
