@@ -5,6 +5,66 @@ module Isi
         # Defines as constants the message types and the message arguments'
         # keys. Also provides methods for checking the validity of message
         # types, message arguments, message types' names, etc.
+        #
+        # Information on message types and their arguments constraints:
+        # == Statements 
+        # === Statement:Delivery Success (STM_DELIVERY_SUCCESS)
+        # Indicates that a message was successfully delivered.
+        # ==== Arguments
+        # * mid:String : message ID which the delivery report concerns
+        # * rcp:String : the recipient BID (of this message)
+        # === Statement:Deliery Failure (STM_DELIVERY_FAILURE)
+        # Indicates that a message failed to be delivered to the recipient.
+        # ==== Arguments
+        # * mid:String : message ID which the delivery report concerns
+        # * rcp:String : the recipient BID (of this message)
+        # === Statement:Present (STM_PRESENT)
+        # Indicates that some buddy is present
+        # ==== Arguments
+        # * bid:String : who is present
+        # * rcp:String : the recipient BID (of this message)
+        # === Statement:Goodbye (STM_GOODBYE)
+        # Indicates that some buddy is leaving us.
+        # This message concerns everybody, has no specific recipient.
+        # ==== Arguments
+        # * bid:String : who is leaving
+        # === Statement:Message (STM_MESSAGE)
+        # A message going to another buddy. It has a
+        # a content and it will be hopping from node to node, so the content
+        # should not be long. For long contents, a direct connection should
+        # be made. It can be requested with REQ_DIRECT
+        # ==== Arguments
+        # * cnt:String : the content of this message (bytes)
+        # * rcp:String : the recipient BID (of this message)
+        # * frm:String : BID of the sender of this message
+        # === Statement:Hello (STM_HELLO)
+        # A message indicating that some buddy has become
+        # available. It has no specific recipient, concerns everybody.
+        # ==== Arguments
+        # * bid:String : who became available
+        # === Statement:Direct (STM_DIRECT)
+        # A message send as a response to REQ_DIRECT when
+        # the direct connection has been initiated.
+        # ==== Arguments
+        # * rcp:String : the recipient of this message (BID) (the one who sent
+        # REQ_DIRECT)
+        # * frm:String : the sender of this message (BID) (the one who connects
+        #   to "rcp")
+        # == Requests
+        # === Request:Presence (REQ_PRESENCE)
+        # Requests the presence status of a given buddy.
+        # Anyone who already knows that the specified buddy is available,
+        # can reply with a STM_PRESENT
+        # ==== Arguments
+        # * bid:String : BID of the buddy in question
+        # === Request:Direct (REQ_DIRECT)
+        # Requests that some buddy iniates a direct connection
+        # with the sender of this message. The receiver of this message is
+        # supposed to connect directly to the sender and when this happens,
+        # send him a STM_DIRECT message.
+        # ==== Arguments
+        # * rcp:String : the recipient BID (of this message)
+        # * frm:String : BID of the sender of this message        
         module MessageTypes
           Isi::db_hello __FILE__, name
 
@@ -18,7 +78,6 @@ module Isi
           CONTENT    = CNT ; FROM      = FRM ;
           
           # Statements #############
-          
           # Statement:Delivery Success: indicates that a message was
           # successfully delivered.
           # === Arguments
