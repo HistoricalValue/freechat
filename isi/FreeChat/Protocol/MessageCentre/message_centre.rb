@@ -13,7 +13,14 @@ module Isi
           # Constructs a new message centre.
           # Besides the operations described on each method, message centre
           # also has an attribute, message_store, which is a +Hash+ which
-          # keeps pairs of message-ids and messages.
+          # keeps pairs of message-ids and messages. MessageCentre will
+          # maintain this Hash automatically for some cases when it makes sense
+          # (adding sent and forwarded messages, removing messages for which
+          # +success+ has been announced or expired messages, etc) but it will
+          # not touch message with MIDs which are not involved in some of the
+          # above operations. If an message with a same MID as one of the 
+          # messages involved in the above operations is added, then it is in
+          # danger of being deleted by the default maintenance of this store.
           #
           # === Arguments
           # * po:      a post office to send messages
@@ -31,7 +38,7 @@ module Isi
             # id_seed is used in generating message IDs which are hopefully
             # spatially and timely unique
             @id_seed = @digester.digest id_seed
-            # Stores pairs of MID-message. Completely manipulated externally.
+            # Stores pairs of MID-message.
             @message_store = {}
             # Stores pairs of MID-BID, where BID is the medium buddy.
             # Message whose MIDs are stored here are considered pending
@@ -64,6 +71,7 @@ module Isi
             @pending.delete mid
             @forwarded.delete mid
             @failures.delete mid
+            @message_store.delete mid
           end
 
           # Notifies the message centre that message with _mid_ has been
@@ -124,7 +132,7 @@ module Isi
           #              +forward_message+ with <code>register?=false</code>\
           #              are equivalent.
           def send_message msg, register = true
-            recipient = msg['rcp']
+            recipient = msg[RCP]
             # when the message has a recipient, try to send it there
             if recipient then
               medium = @linker.get_medium_for recipient
@@ -140,6 +148,7 @@ module Isi
                   logf "(#{register})pending[#{msg.id} =N #{medium}"
                 end
               end
+            @message_store[msg.id] = msg if register
             end
           end
           
@@ -180,6 +189,7 @@ module Isi
                 end
               end
             end
+            @message_store[msg.id] = msg if register
           end
           
           # Returns the medium BID if there is a message pending with the
