@@ -72,6 +72,12 @@ module Isi
                 }
               end
               # TODO deal with cut off buddies (Linker#cut_off_buddies)
+            when STM_MESSAGE
+              if msg[RCP] == bitch.id then
+                bitch.ui.generic_message(msg[FRM], FreeChatUI::INFO, msg[CNT])
+              else
+                bitch.mc.forward_message(msg)
+              end
             end #case message_type
           end #message_received()
           

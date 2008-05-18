@@ -20,7 +20,7 @@ class ShutupyUI < Isi::FreeChat::FreeChatUI
     main_on
   end
   def default_print_message_from(from, level, msg)
-    super(from, level, "#{@id}: #{msg}") if level <= $UI_LEVEL
+    super(from, level, "(#{@id})__--``--__ #{msg}") if level <= $UI_LEVEL
   end
   def main(level,msg)
     default_print_message_from('main', level, msg) if main_on?
@@ -40,17 +40,15 @@ bitches = Hash[Isi_id, Isi_, Ευανθια_id, Ευανθια]
 # Isi says hi to Ευανθια
 Isi_.po.send_to(
     Isi_.link.get_address_of(Ευανθια_id, 0),
-    Isi_.mc.create_message(STM_MESSAGE,'cnt'=>'screw you, Ευανθια, we are over',
-        'rcp' => Ευανθια_id, 'frm' => Isi_id).serialise)
+    Isi_.mc.create_message(STM_MESSAGE, CNT =>'screw you, Ευανθια, we are over',
+        RCP => Ευανθια_id, FRM => Isi_id).serialise)
 # wait for it...
 3.downto(1) { |i| Main_ui.m("replying in #{i}..."); sleep 1 }
 # Ευανθια says hello to isi
 Ευανθια.po.send_to(
     Ευανθια.link.get_address_of(Isi_id, 0),
-    Ευανθια.mc.create_message(STM_HELLO, 'rcp' => Isi_id).serialise)
+    Ευανθια.mc.create_message(STM_HELLO, RCP => Isi_id).serialise)
 
-Main_ui.m 'Presentos banderos:'
-p Isi_.link.present_buddies.to_a, Ευανθια.link.present_buddies.to_a
 Main_ui.m "Hit enter to close down"
 not_ok = true
 begin
