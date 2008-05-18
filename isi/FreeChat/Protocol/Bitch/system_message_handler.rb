@@ -78,6 +78,24 @@ module Isi
               else
                 bitch.mc.forward_message(msg)
               end
+            when STM_HELLO
+              # if this is not about me...
+              unless msg[BID] == bitch.id
+                # Tell linker
+                # TODO figure out hops correctly
+                bitch.link.buddy_is_present(msg[BID],
+                    bitch.link.get_buddy_using_address(addr))
+                # forward if not forwarded
+                unless bitch.mc.message_store.has_key?(msg.id)
+                  bitch.message_store[msg.id] = nil
+                  sdata = msg.serialise
+                  bitch.link.present_buddies { |bid, mids|
+                    bitch.po.send_to(bitch.link.get_address_of(mids.first[:mbid]),
+                        sdata)
+                  }
+                end
+              end
+              
             end #case message_type
           end #message_received()
           
