@@ -142,6 +142,14 @@ module Isi
           def buddy_present? bid
             ! @mediums[bid].nil?
           end
+
+          # Passes an array like
+          #     [BID, [{:mbid => MBID, :hops => hops}, ...]]
+          # to the given block or evaluates to an enumerator for the above if
+          # no block is given.
+          def present_buddies(&block)
+            if block then @mediums.each(&block) else @mediums.to_enum end
+          end
           
           # Informs the linker that some buddy is leaving the cloud. This means
           # this this buddy will be not considered present any more and that
