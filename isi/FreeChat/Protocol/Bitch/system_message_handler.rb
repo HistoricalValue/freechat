@@ -10,10 +10,10 @@ module Isi
           def message_received addr, msg
             case msg.type
             when STM_DELIVERY_SUCCESS then 
-              if msg['rcp'] == bitch.id then
-                bitch.mc.success msg['mid']
+              if msg[RCP] == bitch.id then
+                bitch.mc.success msg[MID]
               else
-                source = bitch.mc.source_of(msg['mid'])
+                source = bitch.mc.source_of(msg[MID])
                 if source.nil?
                 then # this means that this message was not forwarded through
                      # us but the delivery success is coming through us.
@@ -21,14 +21,14 @@ module Isi
                      # message about the delivery success message
                      failure = bitch.mc.create_message(
                          STM_DELIVERY_FAILURE,
-                         'mid' => msg.id,
-                         'rcp' => bitch.link.get_buddy_using_address(addr)
+                         MID => msg.id,
+                         RCP => bitch.link.get_buddy_using_address(addr)
                          )
                      bitch.po.send_to(addr, failure.serialise)
                 else
                   bitch.po.send_to(bitch.link.get_address_of(source),
                       msg.serialise)
-                  bitch.mc.expire(msg['mid'])
+                  bitch.mc.expire(msg[MID])
                 end
               end
             end

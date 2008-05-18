@@ -4,7 +4,8 @@ module Isi
       module Bitch
         class Bitch
           require 'pathname'
-          include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre
+          include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre,
+              Isi::FreeChat::Protocol::MessageCentre::MessageTypes
           
           DefaultSettingsPath = Pathname(ENV['HOME']) + '.config' + 'freechat'
           def initialize my_id,
@@ -58,12 +59,12 @@ module Isi
             msg = @mc.deserialise data
             if @link.address_untrusted?(addr) then
               # this better be an identification message
-              if  msg.type == MessageTypes::STM_PRESENT &&
-                  msg['rcp'] == @id
+              if  msg.type == STM_PRESENT &&
+                  msg[RCP] == @id
               then
                 @link.remove_untrusted_address addr
-                @link.buddy_using_address msg['bid'], addr
-                @ui.b(FreeChatUI::INFO, "Accepted #{msg['bid']} from address #{
+                @link.buddy_using_address msg[BID], addr
+                @ui.b(FreeChatUI::INFO, "Accepted #{msg[BID]} from address #{
                     addr}")
               else # message from untrusted address is not STM_PRESENT for us...
                 # kill
@@ -72,10 +73,10 @@ module Isi
                     }. message: #{@mc.message_to_s msg}")
                 @ui.b(FreeChatUI::DEBUG, "[type(#{msg.type} #{@mc.type_to_s msg
                     }) == STM_PRESENT(#{MessageTypes::STM_PRESENT})]=#{
-                    msg.type == MessageTypes::STM_PRESENT} && [rcp(#{msg['rcp']
-                    }) == id(#{@id})]=#{msg['rcp'] == @id} = #{
+                    msg.type == MessageTypes::STM_PRESENT} && [rcp(#{msg[RCP]
+                    }) == id(#{@id})]=#{msg[RCP] == @id} = #{
                     msg.type == MessageTypes::STM_PRESENT &&
-                    msg['rcp'] == @id}")
+                    msg[RCP] == @id}")
               end
             else
               # trusted address - receive message normally.
@@ -117,7 +118,7 @@ module Isi
             # send identification message
             @po.send_to(addr,
                 @mc.create_message(MessageTypes::STM_PRESENT,
-                    'bid' => @id, 'rcp' => @link.get_buddy_using_address(addr)
+                    BID => @id, RCP => @link.get_buddy_using_address(addr)
                     ).serialise
                 )
           end
