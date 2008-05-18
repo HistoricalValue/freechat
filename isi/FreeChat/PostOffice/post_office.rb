@@ -8,10 +8,8 @@ module Isi
         require 'socket'
         require 'date'
         require 'logger'
-        
         include Socket::Constants
-
-        ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
+        require ModuleRootDir + 'post_office_closed'
         
         Cleaner_thread_check_period = 30 # sec
         Idle_connection_idle_time   = 60 # sec
