@@ -2,13 +2,23 @@ module Isi
   module FreeChat
     module Protocol
       module MessageCentre
+        # Defines as constants the message types and the message arguments'
+        # keys. Also provides methods for checking the validity of message
+        # types, message arguments, message types' names, etc.
         module MessageTypes
           Isi::db_hello __FILE__, name
 
           ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
 
+          # Message arguments' keys #############
+          MID = 'mid' ; RCP = 'rcp' ; BID = 'bid'
+          CNT = 'cnt' ; FRM = 'frm' ;
+          # aliases
+          MESSAGE_ID = MID ; RECIPIENT = RCP ; BUDDY_ID = BID
+          CONTENT    = CNT ; FROM      = FRM ;
+          
           # Statements #############
-
+          
           # Statement:Delivery Success: indicates that a message was
           # successfully delivered.
           # === Arguments
