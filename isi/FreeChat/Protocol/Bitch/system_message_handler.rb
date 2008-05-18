@@ -31,8 +31,25 @@ module Isi
                   bitch.mc.expire(msg[MID])
                 end
               end
-            end
-          end
+            when STM_DELIVERY_FAILURE then
+              if msg[RCP] == bitch.id then
+                # A message we have sent has failed. Try to send again.
+                mid = bitch.mc.failure msg[MID]
+                # ignore this if we didn't send it
+                break if mid.nil?
+                # TODO reinitiate discovery for msg[MID]
+              else
+                # supposed we forwarded the failed message at some point
+                origin, mid = bitch.mc.failure msg[MID]
+                # ignore if we didn't
+                break if origin.nil? || mid.nil?
+                bitch.po.send_to(bitch.link.get_address_of(origin),
+                    msg.serialise)
+                bitch.mc.expire(msg[MID])
+              end
+            end #case message_type
+          end #message_received()
+          
         end
       end
     end
