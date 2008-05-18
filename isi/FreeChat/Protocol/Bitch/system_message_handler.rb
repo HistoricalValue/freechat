@@ -36,17 +36,42 @@ module Isi
                 # A message we have sent has failed. Try to send again.
                 mid = bitch.mc.failure msg[MID]
                 # ignore this if we didn't send it
-                break if mid.nil?
+                unless mid.nil?
                 # TODO reinitiate discovery for msg[MID]
+                end
               else
                 # supposed we forwarded the failed message at some point
                 origin, mid = bitch.mc.failure msg[MID]
                 # ignore if we didn't
-                break if origin.nil? || mid.nil?
-                bitch.po.send_to(bitch.link.get_address_of(origin),
-                    msg.serialise)
-                bitch.mc.expire(msg[MID])
+                unless origin.nil? || mid.nil?
+                  bitch.po.send_to(bitch.link.get_address_of(origin),
+                      msg.serialise)
+                  bitch.mc.expire(msg[MID])
+                end
               end
+            when STM_PRESENT then
+              # Steal info eitherway...
+              # TODO add correctly hops
+              bitch.link.buddy_is_present(msg[BID],
+                  bitch.link.get_buddy_using_address(addr))
+              # Now send further if we must...
+              if msg[RCP] != bitch.id && !bitch.mc.forwarded?(msg.id) then
+                # forward
+                bitch.mc.forward_message(msg)
+              end
+            when STM_GOODBYE
+              # Tell linker
+              bitch.link.buddy_goodbyed(msg[BID])
+              # forward to all (unless we already have)
+              unless bitch.mc.message_store.has_key?(msg.id)
+                bitch.mc.message_store[msg.id] = nil
+                sdata = msg.serialise
+                bitch.link.present_buddies { |bid, mids|
+                  bitch.po.send_to(bitch.link.get_address_of(mids.first[:mbid]),
+                      sdata)
+                }
+              end
+              # TODO deal with cut off buddies (Linker#cut_off_buddies)
             end #case message_type
           end #message_received()
           
