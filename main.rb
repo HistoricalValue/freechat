@@ -4,8 +4,8 @@ $isi = {
   :debug_bye =>   !true,
 }
 $ENV = ENV
-
-require 'trunk/isi/freechat'
+$:.unshift('trunk')
+require 'isi/freechat'
 include Isi, Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre::MessageTypes
 
 $UI_LEVEL = FreeChatUI::INFO
