@@ -89,7 +89,7 @@ module Isi
                     bitch.mc.type_to_s msg})")
                 # forward if not forwarded
                 unless bitch.mc.message_store.has_key?(msg.id)
-                  bitch.message_store[msg.id] = nil
+                  bitch.mc.message_store[msg.id] = nil
                   sdata = msg.serialise
                   bitch.link.present_buddies { |bid, mids|
                     bitch.po.send_to(bitch.link.get_address_of(mids.first[:mbid]),
