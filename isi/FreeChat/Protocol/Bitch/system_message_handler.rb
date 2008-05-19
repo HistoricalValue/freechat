@@ -86,7 +86,7 @@ module Isi
                 bitch.link.buddy_is_present(msg[BID],
                     bitch.link.get_buddy_using_address(addr))
                 bitch.ui.b(FreeChatUI::FINER, "#{msg[BID]} is present (#{
-                    bitch.mc.type_to_s msg.type})")
+                    bitch.mc.type_to_s msg})")
                 # forward if not forwarded
                 unless bitch.mc.message_store.has_key?(msg.id)
                   bitch.message_store[msg.id] = nil
