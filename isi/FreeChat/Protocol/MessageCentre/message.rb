@@ -66,6 +66,7 @@ module Isi
           end
 
           attr_reader :mid, :type
+		  alias_method :id, :mid
           
           # Returns the value of the arg with the given name.
           def [] arg_name
