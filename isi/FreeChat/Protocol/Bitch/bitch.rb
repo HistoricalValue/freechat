@@ -207,19 +207,23 @@ module Isi
             handler_lines = @@System_message_handlers_config
             handler_lines.concat handlers_config_path.readlines
             handler_lines.each { |handler_line|
-              lib, className, types = handler_line.split(/\s+/, 3)
+              next if handler_line =~ %r{(^#)|(^\s*$)}
+              lib, className_and_args, types = handler_line.split(/\s+/, 3)
               require lib
-              klass = nil
-              ObjectSpace.each_object(Class) { |k|
-                if k.to_s == className then klass = k ; break end
-              }
+              className, args = className_and_args.split('(')
+              if args
+                then args = args.sub!('(','').sub!(')','').split(',')
+                else args = []
+              end
+              klass = Isi::getClass className
               if klass.nil? then
                 @ui.b(FreeChatUI::WARNING, "Class #{className
                     } not found (for message handler)")
               else
                 types.strip!
                 types = types.split(%r{\s+})
-                handler = klass::new types, self
+                handler = klass::new(*args)
+                handler.bitch = self
                 for type in types do
                   type_val = message_names_to_types[type]
                   if type_val.nil?
