@@ -5,6 +5,20 @@ module Isi
     def to_b; if self then true else false end end
   end
   
+  # Returns the class whose name is specified as a string. If the argument
+  # is not a string, it will be transformed to a string by +#to_s+ and then
+  # used to find the class. If the argument is _nil_ then +Object+ is returned.
+  def self.getClass class_name=nil
+    return Object unless class_name
+    class_name = class_name.to_s unless class_name.is_a?(String)
+    family = class_name.split('::')
+    result = Object
+    for member in family
+      result = result::const_get member
+    end
+    result
+  end
+  
   # saying hello and bye in module loading
   def self.db_hello filename, modulename=nil
     puts "#{filename} :: <#{modulename}> hello" if $isi and $isi[:debug_hello]
