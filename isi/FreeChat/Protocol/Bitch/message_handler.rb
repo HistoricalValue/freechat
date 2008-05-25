@@ -6,16 +6,18 @@ module Isi
         # are notified about speciific (or all) types of messages and deal
         # with them and their consequencies.
         class MessageHandler
-          # === Arguments
-          # * _message_types_ : an +Array+ of +MessageTypes+ which this
-          # +MessageHandler+ is supposed to be handling
-          # * _bitch_ ; the +Bitch+
-          def initialize message_types, bitch
-            @mtypes = message_types
-            @bitch = bitch
+          def mtypes 
+            raise "Unimplemented #{self.class}#mtypes() method"
           end
-          attr_reader :mtypes, :bitch
+          
+          attr_reader :bitch
           alias_method :message_types, :mtypes
+          
+          # Sets the bitch. Can be done only once. Returns true if the bitch
+          # is set as a result of this method invokation, false otherwise.
+          def bitch= b
+            if @bitch then false else @bitch = b; true end
+          end
           
           # Returns the +MessageCentre+ given by +bitch+.
           def mc
