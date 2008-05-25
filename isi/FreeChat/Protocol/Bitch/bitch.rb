@@ -43,6 +43,37 @@ module Isi
           end
           attr_reader :bbq, :po, :mc, :link, :id, :ui
 
+          # Add the given handler to the list of message handlers that the
+          # bitch will notify upon arrival of messages.
+          #
+          # If _msg_types_ +respond_to?+ each, then the given message handler will
+          # be registered to receive all message types found in _msg_types_.
+          # 
+          # If _msg_types_ is not an array then it is presumed that it represents
+          # a single message type and then the given message
+          # handler will be registered to receive only the specified type in
+          # _msg_types_.
+          #
+          # If _msg_types_ is nil then the message types are acquired by
+          # method +#mtypes+ of the given handler.
+          #
+          # Message types are specified in
+          # +Isi::FreeChat::Protocol::MessageCentre::MessageTypes+
+          def add_message_handler handler, msg_types=nil
+            msg_types = handler.mtypes unless msg_types
+            if msg_types.respond_to?(:each) then
+              msg_types.each { |mtype|
+                add_to = @message_handlers[mtype] = [] unless
+                    add_to = @message_handlers[mtype]
+                add_to << handler
+              }
+            else
+              add_to = @message_handlers[msg_types] = [] unless
+                  add_to = @message_handlersmtype[msg_types]
+              add_to << handler
+            end
+          end
+          
           def bye
             @po.close_down
           end
