@@ -2,17 +2,24 @@ module Isi
   module FreeChat
     module Protocol
       module Bitch
+        Isi::db_hello __FILE__, name
+        
         class Bitch
           require 'pathname'
           include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre,
               Isi::FreeChat::Protocol::MessageCentre::MessageTypes
           
           DefaultSettingsPath = Pathname(ENV['HOME']) + '.config' + 'freechat'
+          
           def initialize my_id,
               ui = Isi::FreeChat::FreeChatUI::new,
               settings_path = DefaultSettingsPath
             @ui = ui
             @id = my_id
+            
+            # My ID is not allowed to be nil. Ever.
+            raise 'my_id.nil? == true' if my_id.nil?
+            
             # Mutexes
             
             # A mutex that synchronises all the event methods that Post Office
@@ -22,8 +29,10 @@ module Isi
             loadSettings settings_path
             # A delicate hierarchy of a fragile artifact...
             # Post office
+            raise("Myself \"%s\" does not have an entry in BBQ. BBQ: #{
+                @bbq}" % @id) if (@my_bbq_entry = @bbq[@id]).nil?
             @po = Isi::FreeChat::PostOffice::PostOffice::new(
-                @bbq[my_id].addresses.first,
+                @my_bbq_entry.addresses.first,
                 self)
             @ui.b(FreeChatUI::FINER, 'Created post office')
             # Linker
@@ -40,6 +49,8 @@ module Isi
             
             # open post office - we are ready to go
             @po.open_up
+            # Start message handlers
+            @message_handlers.each { |type, mhs| mhs.each { |mh| mh.start } }
           end
           attr_reader :bbq, :po, :mc, :link, :id, :ui
 
@@ -66,12 +77,18 @@ module Isi
                 add_to = @message_handlers[mtype] = [] unless
                     add_to = @message_handlers[mtype]
                 add_to << handler
+                @ui.b(FreeChatUI::FINE, "Manually registered handler #{
+                    handler.inspect} (for #{mtype})")
               }
             else
               add_to = @message_handlers[msg_types] = [] unless
                   add_to = @message_handlersmtype[msg_types]
               add_to << handler
+              @ui.b(FreeChatUI::FINE, "Manually registered handler #{
+                  handler.inspect} (for #{msg_types})")
             end
+            handler.bitch = self
+            handler.start
           end
           
           def bye
@@ -180,6 +197,7 @@ module Isi
               else # read until \x00
                 entry[:id] = char
                 while (c = cont.next) != "\x00" do entry[:id] << c end
+                entry[:id] = entry[:id].encode 'utf-8'
                 @ui.b(FreeChatUI::FINEST, "Reading address infor for #{entry[:id]}")
                 state = 'buddy_id_read'
               end
@@ -278,6 +296,8 @@ module Isi
           end
 
         end
+        
+        Isi::db_bye __FILE__, name
       end
     end
   end
