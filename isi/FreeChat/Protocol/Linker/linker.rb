@@ -113,8 +113,11 @@ module Isi
             return medium unless medium.nil?
           end
           
-          # Tells the linker that a buddy is directly connectable.
-          def buddy_connectable bid
+          # Tells the linker that a buddy is directly connectable to the
+          # address given. Currently there are no checks made for the given
+          # address (whether is it actually connectable, whether it belongs
+          # indeed to this buddy (according to buddybook), etc).
+          def buddy_connectable bid, addr=nil
             # first of all means that medium for that buddy is itself
             get_medium_entry(bid).unshift(Hash[:mbid, bid, :hops, 0])
             # secondly it is present, but that is a consequence of the above
