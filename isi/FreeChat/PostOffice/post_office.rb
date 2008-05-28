@@ -153,6 +153,8 @@ module Isi
         # Errno::ECONNREFUSED
         def send_to addr, data
           raise PostOfficeClosed unless @open
+          raise ArgumentError::new('addr is nil') unless addr
+          raise ArgumentError::new('data is nil') unless data
           len_bytes = data.bytesize.bytes
           len_bytes[len_bytes.length .. 3] = Array.new(4-len_bytes.length, 0)
           connection = get_connection addr
