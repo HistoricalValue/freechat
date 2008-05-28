@@ -136,6 +136,8 @@ module Isi
             # when the message has a recipient, try to send it there
             if recipient then
               medium = @linker.get_medium_for recipient
+              raise unless medium
+              medium = medium[:mbid]
               post_message medium, msg
               @pending[msg.id] = medium if register
               logf "#({register})pending[#{msg.id} =1 #{medium}"
@@ -143,7 +145,7 @@ module Isi
               # send it to everyone we can
               for bentry in @bbq do
                 if (medium = @linker.get_medium_for bentry.id) then
-                  post_message medium, msg
+                  post_message medium[:mbid], msg
                   @pending[msg.id] = medium
                   logf "(#{register})pending[#{msg.id} =N #{medium}"
                 end
@@ -301,7 +303,9 @@ module Isi
           # FOR EXAMPLE)
           # * message : a message of the appropriate class
           def post_message recipient, message
-            @po.send_to @linker.get_address_of(recipient), message.serialise
+            addr = @linker.get_address_of(recipient)
+            raise "No known address for recipient: #{recipient}" unless addr
+            @po.send_to addr, message.serialise
           end
           
           # Assumes that message type has not been tampered with and tried
