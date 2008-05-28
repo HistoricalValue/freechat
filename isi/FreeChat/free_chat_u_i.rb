@@ -5,7 +5,8 @@ module Isi
     # This is the minimal methods an UI for the FreeChat application
     # has to provide.
     # 
-    # All the methods in this class simply print everything to STDOUT.
+    # All the methods in this module end up calling
+    # +default_print_message_from+, which simply prints everything to STDOUT.
     # Essentially, all methods should be overriden.
     #
     # Each method is specified according to the component a message can arrive
@@ -13,14 +14,14 @@ module Isi
     # (how serious it is or what type of message it is) and the other is
     # the message itself.
     # 
-    # The _level_ argument will be one of the constants defined in this class
+    # The _level_ argument will be one of the constants defined in this module
     # but no check is performed in the default methods about the type of the
     # level.
     #
     # There is also another generic method, called "generic message" which is
     # intented for messages not arriving from the predefined componenets. It
     # gets an extra argument which is the origin of the message.
-    class FreeChatUI
+    module FreeChatUI
       FATAL  = 0x00
       ERROR  = 0x01
       WARNING= 0x04

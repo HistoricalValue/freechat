@@ -82,9 +82,7 @@ module Isi
         @socket.connect @jui_sockaddr
         # We need two threads, one to receive messages and one to send out
         # the ones we receive as UI.
-        
-        #TODO add servings here
-        # TODO remove - test
+
         Thread::new(&@servin_lambda)
       end
       alias_method :start, :connect_and_serve

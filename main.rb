@@ -13,7 +13,8 @@ include Isi, Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre::MessageTypes
 $UI_LEVEL = Isi::FreeChat::FreeChatUI::FINER
 $ONLY_FROM = /JUI-comm/
 $UI_DISREGARDS = !true
-class ShutupyUI < Isi::FreeChat::FreeChatUI
+class ShutupyUI
+  include Isi::FreeChat::FreeChatUI
   def initialize args
     @id = args[:id]; raise unless @id
     @main_on = args[:main] || true
