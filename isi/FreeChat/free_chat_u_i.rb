@@ -1,5 +1,7 @@
 module Isi
   module FreeChat
+    Isi::db_hello __FILE__, name
+    
     # This is the minimal methods an UI for the FreeChat application
     # has to provide.
     # 
@@ -58,5 +60,7 @@ module Isi
         puts "<#{from}:#{level}> #{msg}"
       end
     end
+    
+    Isi::db_bye __FILE__, name
   end
 end
