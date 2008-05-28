@@ -12,6 +12,12 @@ module Isi
         end
         attr_reader :id, :addresses
         
+        # Returns a string like
+        #    "#{id}: #{addresses.join(' ')}"
+        def to_s
+          "#{id}: #{addresses.join(' ')}"
+        end
+        
         Isi::db_bye __FILE__, name
       end
     end

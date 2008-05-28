@@ -35,7 +35,15 @@ module Isi
         def each(&block)
           @entries.each(&block)
         end
-        
+
+        # Makes a very very pretty and human readable string representation of
+        # this bbw
+        def to_s
+          result = "BuddyBook:\n"
+          each { |bid, entry| result.concat("    %s\n" % entry) }
+          result
+        end
+
         Isi::db_bye __FILE__, name
       end
     end
