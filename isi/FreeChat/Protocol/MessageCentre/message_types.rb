@@ -168,16 +168,16 @@ module Isi
           # Keys in the Hash are the names of the message types, as defined 
           # as constants in this module.
           MessageRestrictions = {
-            'STM_DELIVERY_SUCCESS' => {'mid' => String, 'rcp' => String},
-            'STM_DELIVERY_FAILURE' => {'mid' => String, 'rcp' => String},
-            'STM_PRESENT'          => {'bid' => String, 'rcp' => String},
-            'STM_GOODBYE'          => {'bid' => String},
-            'STM_MESSAGE'          => {
-              'cnt' => String, 'rcp' => String, 'frm' => String},
-            'STM_HELLO'            => {'rcp' => String},
-            'STM_DIRECT'           => {'rcp' => String, 'frm' => String},
-            'REQ_PRESENCE'         => {'bid' => String},
-            'REQ_DIRECT'           => {'rcp' => String, 'frm' => String},
+            'STM_DELIVERY_SUCCESS' => { MID => String, RCP => String},
+            'STM_DELIVERY_FAILURE' => { MID => String, RCP => String},
+            'STM_PRESENT'          => { BID => String, RCP => String},
+            'STM_GOODBYE'          => { BID => String},
+            'STM_MESSAGE'          => { CNT => String, RCP => String,
+                                        FRM => String},
+            'STM_HELLO'            => { RCP => String},
+            'STM_DIRECT'           => { RCP => String, FRM => String},
+            'REQ_PRESENCE'         => { BID => String},
+            'REQ_DIRECT'           => { RCP => String, FRM => String},
           }
           
           # Returns an array of the message type names, as defined as constants
