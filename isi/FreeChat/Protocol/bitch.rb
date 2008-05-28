@@ -8,7 +8,9 @@ module Isi
 
         # require all files for this module
         require ModuleRootDir + 'bitch'
-
+        require ModuleRootDir + 'finder'
+        require ModuleRootDir + 'message_handler'
+        
         Isi::db_bye __FILE__, name
       end
     end
