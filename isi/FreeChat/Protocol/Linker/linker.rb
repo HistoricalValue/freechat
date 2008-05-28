@@ -193,9 +193,8 @@ module Isi
           # Returns an entry if there is one, otherwise creates a new one
           # and returns it
           def get_medium_entry bid
-            result = @mediums[bid]
-            @mediums[bid] = result = [] unless result
-            return result
+            @mediums[bid] = result = [] unless (result = @mediums[bid])
+            result
           end
         end
       end
