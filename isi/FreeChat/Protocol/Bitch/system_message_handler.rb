@@ -106,6 +106,10 @@ module Isi
             end #case message_type
           end #message_received()
           
+          def start
+            # I was born started, baby
+          end
+          
         end
       end
     end
