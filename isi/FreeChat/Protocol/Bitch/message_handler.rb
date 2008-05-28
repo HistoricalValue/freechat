@@ -2,6 +2,8 @@ module Isi
   module FreeChat
     module Protocol
       module Bitch
+        Isi::db_hello __FILE__, name
+        
         # This is the superclass of all message handlers. Message handlers
         # are notified about speciific (or all) types of messages and deal
         # with them and their consequencies.
@@ -16,7 +18,10 @@ module Isi
           # Sets the bitch. Can be done only once. Returns true if the bitch
           # is set as a result of this method invokation, false otherwise.
           def bitch= b
-            if @bitch then false else @bitch = b; true end
+            if instance_variable_defined?(:@bitch)
+              then false
+              else @bitch = b; true
+            end
           end
           
           # Returns the +MessageCentre+ given by +bitch+.
@@ -38,6 +43,8 @@ module Isi
             raise 'Unimplemented MessageHandler#message_received() method'
           end
         end
+        
+        Isi::db_bye __FILE__, name
       end
     end
   end
