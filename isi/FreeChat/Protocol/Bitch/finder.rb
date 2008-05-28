@@ -6,8 +6,51 @@ module Isi
         
         # Implements the buddy discovery facility of Bitch
         class Finder
-          def initialize
+          # === Arguments
+          # * po : the +PostOffice+
+          # * link : the +Linker+
+          # * mc : the +MessageCentre+
+          # * bbq ; the +BuddyBook+
+          # * ui : a +FreeChatUI+
+          def initialize po, link, mc, bbq, ui=nil
+            @po = po
+            @link = link
+            @mc = mc
+            @bbq = bbq
+            @ui = ui
+          end
+          
+          # Initiates search procedure. Should find out all buddies who are
+          # present and inform the linker about them. It will also discover
+          # buddy mediums for buddies which are present.
+          def find_all
+            bentries = @bbq.to_enum.map { |bid, entry| entry }
+            # First find which buddies are directly connectable?
+            bentries.reject! { |entry|
+              if raddr = entry.addresses.find { |addr| @po.reachable? addr} then
+                @link.buddy_connectable entry.id, raddr
+                ui_buddy_connectable entry.id, raddr
+                true # reject this entry, it's been used
+              end
+            }
             
+          end
+          
+          private ##############################################################
+          def ui_buddy_connectable bid, addr
+            ui_fine "Buddy [#{bid}] directly connectable at address #{addr}"
+          end
+          
+          def ui_fine msg
+            ui_me Isi::FreeChat::FreeChatUI::FINE, msg
+          end
+          
+          def ui_warn msg
+            ui_me Isi::FreeChat::FreeChatUI::WARNING, msg
+          end 
+          
+          def ui_me level, msg
+            @ui.bitch_message level, msg
           end
         end
         
