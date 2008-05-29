@@ -85,6 +85,6 @@ loop { sleep 1 }
 puts "THE END"
 
 rescue Exception => e
-  puts e
+  puts "#{e.class} :: #{e}"
   puts e.backtrace.map {|s| "    #{s}" }.join("\n")
 end

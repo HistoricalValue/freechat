@@ -181,9 +181,10 @@ module Isi
           sockaddr = Socket::pack_sockaddr_in addr.port, addr.ip
           begin
             result.connect_nonblock sockaddr
-          rescue Errno::EINPROGRESS
+          rescue Errno::EINPROGRESS, Errno::EALREADY
             if maxwait > 0 then sleep 1 else return false end
             maxwait -= 1
+            retry
           rescue Errno::EISCONN
           end
           return true
