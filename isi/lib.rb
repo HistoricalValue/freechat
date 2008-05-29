@@ -119,6 +119,12 @@ module Isi
     class ::Pathname
       alias_method :to_path, :to_s
     end
+    
+    class ::String
+      def encode(*args, &block) # god forgive me
+        self.dup
+      end
+    end
   end
   
 end
