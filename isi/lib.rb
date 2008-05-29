@@ -98,20 +98,18 @@ module Isi
   }
   
   # If this is ruby-1.8.6, we need to patch in ruby-1.9 methods
-  if RUBY_VERSION =~ /^1\.8/ then
+  if RUBY_VERSION =~ /^1\.9/ then
     class ::Object
-      alias_method :old_initialize, :initialize
-      def initialize(*args, &block)
-        old_initialize(*args, &block)
-        @singleton_methods = {}
-      end
       def define_singleton_method(symb, &block)
+        unless instance_variable_defined?(:@singleton_methods)
+          @singleton_methods = {}
+        end
         @singleton_methods[symb] = block
       end
       alias_method :old_method_missing, :method_missing
       def method_missing(symb, *args, &block)
         # first check if missing method is a singletong method
-        if meth = @singleton_methods[symb]
+        if instance_variable_defined?(:@singleton_methods) && meth = @singleton_methods[symb]
         then meth.call(*args, &block)
         else old_method_missing(symb, *args, &block)
         end

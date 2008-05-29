@@ -11,7 +11,7 @@ include Isi, Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre::MessageTypes
     Isi::FreeChat::Protocol::Bitch, Isi::FreeChatUI
 
 $UI_LEVEL = Isi::FreeChat::FreeChatUI::FINER
-$ONLY_FROM = /JUI-comm/
+$ONLY_FROM = nil && /JUI-comm/
 $UI_DISREGARDS = !true
 class ShutupyUI
   include Isi::FreeChat::FreeChatUI
@@ -58,7 +58,7 @@ Main_id = 'Juumala'
 Main_ui = ShutupyUI::new(:id => Main_id)
 
 Yksi_id = Self1.encode 'utf-8'
-Kaksi_id = Self2.encode 'utf-8'
+#Kaksi_id = Self2.encode 'utf-8'
 
 case Case
 when '1' then
@@ -68,15 +68,15 @@ when '1' then
   Yksi_b  = Bitch::new Yksi_id, Yksi_ui
 when '2' then
   # Start 2
-  Main_ui.m "Starting #{Self2} to port #{Port2}"
-  Kaksi_ui = ShutupyUI::new(:id => Kaksi_id)
-  Kaksi_b = Bitch::new Kaksi_id, Kaksi_ui
-  Kaksi_jui_mh = JUICommunicator::new(Port2)
-  Kaksi_b.add_message_handler Kaksi_jui_mh
-  Kaksi_b.link.buddy_connectable Yksi_id
-  # Manual send to Yksi
-  Kaksi_b.mc.send_message(Kaksi_b.mc.create_message(STM_MESSAGE, RCP => Yksi_id,
-      FRM => Kaksi_id, CNT => 'Hello bobakla'))
+#  Main_ui.m "Starting #{Self2} to port #{Port2}"
+#  Kaksi_ui = ShutupyUI::new(:id => Kaksi_id)
+#  Kaksi_b = Bitch::new Kaksi_id, Kaksi_ui
+#  Kaksi_jui_mh = JUICommunicator::new(Port2)
+#  Kaksi_b.add_message_handler Kaksi_jui_mh
+#  Kaksi_b.link.buddy_connectable Yksi_id
+#  # Manual send to Yksi
+#  Kaksi_b.mc.send_message(Kaksi_b.mc.create_message(STM_MESSAGE, RCP => Yksi_id,
+#      FRM => Kaksi_id, CNT => 'Hello bobakla'))
 end
 
 Main_ui.m 'Send kill signal to end'
