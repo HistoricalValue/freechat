@@ -116,6 +116,9 @@ module Isi
       end
     end
     
+    class ::Pathname
+      alias_method :to_path, :to_s
+    end
   end
   
 end
