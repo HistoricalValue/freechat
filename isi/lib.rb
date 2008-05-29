@@ -98,7 +98,7 @@ module Isi
   }
   
   # If this is ruby-1.8.6, we need to patch in ruby-1.9 methods
-  if RUBY_VERSION =~ /^1\.9/ then
+  if RUBY_VERSION =~ /^1\.8/ then
     class ::Object
       def define_singleton_method(symb, &block)
         unless instance_variable_defined?(:@singleton_methods)
