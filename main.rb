@@ -49,6 +49,7 @@ begin
   
 if ARGV.any? {|h| h == '-h' or h == '--help' or h == '-?' } then
   puts "args: Self1 Port1 Self2 Port2 Case", 'In fact only Self1 is used and Case must always be 1'
+  exit
 end
 Self1, Port1, Self2, Port2, Case = ARGV[0..4]
 Eva = 'Ευανθια'
@@ -61,11 +62,6 @@ Yksi_id = Self1.encode 'utf-8'
 #Kaksi_id = Self2.encode 'utf-8'
 
 case Case
-when '1' then
-  # Start 1
-  Main_ui.m "Starting #{Self1} to port #{Port1}"
-  Yksi_ui = ShutupyUI::new(:id => Yksi_id)
-  Yksi_b  = Bitch::new Yksi_id, Yksi_ui
 when '2' then
   # Start 2
 #  Main_ui.m "Starting #{Self2} to port #{Port2}"
@@ -77,6 +73,11 @@ when '2' then
 #  # Manual send to Yksi
 #  Kaksi_b.mc.send_message(Kaksi_b.mc.create_message(STM_MESSAGE, RCP => Yksi_id,
 #      FRM => Kaksi_id, CNT => 'Hello bobakla'))
+else
+  # Start 1
+  Main_ui.m "Starting #{Self1} to port #{Port1}"
+  Yksi_ui = ShutupyUI::new(:id => Yksi_id)
+  Yksi_b  = Bitch::new Yksi_id, Yksi_ui
 end
 
 Main_ui.m 'Send kill signal to end'

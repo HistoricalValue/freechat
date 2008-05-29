@@ -42,6 +42,9 @@ module Isi
             @mc = Isi::FreeChat::Protocol::MessageCentre::MessageCentre::new(
                 @po, @link, @ui)
             @ui.b(FreeChatUI::FINER, 'Created message centre')
+            # Finder
+            @finder = Finder::new(:po => @po, :link => @link, :mc => @mc,
+                :bbq => @bbq, :ui => @ui, :my_id => @id)
             
             # @message_handlers is something like this
             # {message_type => [handler, handler, ...] }
@@ -51,6 +54,8 @@ module Isi
             @po.open_up
             # Start message handlers
             @message_handlers.each { |type, mhs| mhs.each { |mh| mh.start } }
+            # Ask finder to find as much as it can
+            @finder.find_all
           end
           attr_reader :bbq, :po, :mc, :link, :id, :ui
 
