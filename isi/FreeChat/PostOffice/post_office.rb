@@ -16,6 +16,7 @@ module Isi
         Idle_connection_idle_time_day_fraction =
             Rational(Idle_connection_idle_time / 24 * 60 * 60)
         Server_sleeping_period      =  1 # sec
+        Reachable_wait              =  3 # sec
 
         # === Arguments
         # * my_addr : An +Address+ object which indicates our address (to
@@ -33,6 +34,9 @@ module Isi
           @receiver_logger.level = Logger::WARN
           @server_logger = Logger.new STDERR
           @server_logger.level = Logger::WARN
+
+          # How long to wait when testing if someone is +reachable?+
+          @reachable_wait = Reachable_wait
           
           # @connections is a hash like this:
           #     {addr => [socket_stream, last_used_datetime] }
@@ -127,6 +131,7 @@ module Isi
           }
           @open = false # post office is closed
         end
+        attr_accessor :reachable_wait
         
         # Start accepting connections.
         def open_up
@@ -163,10 +168,25 @@ module Isi
           connection[1] = DateTime.now
         end
         
-        # Checks if an address is connectable
-        def reachable? addr
-          connection = get_connection addr
-          return (not connection.nil?)
+        # Checks if an address is connectable. This some times might block
+        # by waiting for an answer from the given address. If the _maxwait_
+        # parameter is used, then +reachable?+ will not wait for more than
+        # the amount of seconds specified in _maxwait_. If there is not answer
+        # by the time _maxwait_ seconds have gone by, _addr_ will be declared
+        # unreachable. The default value for _maxwait_ is the attribute
+        # +reachable_wait+ which can be set differently for each object.
+        def reachable? addr, maxwait = reachable_wait
+          result = Socket::new AF_INET, SOCK_STREAM, 0
+          result.do_not_reverse_lookup = true
+          sockaddr = Socket::pack_sockaddr_in addr.port, addr.ip
+          begin
+            result.connect_nonblock sockaddr
+          rescue Errno::EINPROGRESS
+            if maxwait > 0 then sleep 1 else return false end
+            maxwait -= 1
+          rescue Errno::EISCONN
+          end
+          return true
         rescue Errno::ECONNREFUSED
           return false
         rescue Errno::ETIMEDOUT
