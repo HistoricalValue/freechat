@@ -26,17 +26,29 @@ module Isi
           def find_all
             bentries = @bbq.to_enum.map { |bid, entry| entry }
             # First find which buddies are directly connectable?
+            ui_finding_all
             bentries.reject! { |entry|
-              if raddr = entry.addresses.find { |addr| @po.reachable? addr} then
+              if raddr = entry.addresses.find { |addr|
+                ui_looking_for_buddy entry.id, addr
+                @po.reachable? addr
+              } then
                 @link.buddy_connectable entry.id, raddr
                 ui_buddy_connectable entry.id, raddr
                 true # reject this entry, it's been used
               end
             }
-            
+            ui_fine "Unfound buddies: #{bentries.inspect}"
           end
           
           private ##############################################################
+          def ui_looking_for_buddy bid, addr
+            ui_fine "Looking for buddy #{bid} at address #{addr}"
+          end
+          
+          def ui_finding_all
+            ui_fine "Looking for all buddies..."
+          end
+          
           def ui_buddy_connectable bid, addr
             ui_fine "Buddy [#{bid}] directly connectable at address #{addr}"
           end
