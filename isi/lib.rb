@@ -124,6 +124,17 @@ module Isi
       def encode(*args, &block) # god forgive me
         self.dup
       end
+      def bytes
+        bs = []
+        self.each_byte { |b| bs << b }
+        bs
+      end
+      def chars
+        self.bytes.map { |b| '' << b }
+      end
+      def each_char(&block)
+        self.chars.each(&block)
+      end
     end
   end
   
