@@ -120,11 +120,9 @@ module Isi
         @default_command_handler_returning_lambda =
             lambda { @default_command_handler }
         @default_exception_handler = lambda { |e|
-          if e then
-            STDERR.puts e.inspect
-            if bktrc = e.backtrace then
-              STDERR.puts bktrc.join("\n")
-            end
+          if e then STDERR.puts e.inspect
+                    if bktrc = e.backtrace then STDERR.puts bktrc.join("\n")
+                    end
           end
         }
         
@@ -133,9 +131,7 @@ module Isi
         @SIGINT_handler_lambda = make_SIGINT_handler_lambda
         
         # Initialise default command handlers
-        add_command_hanlder(Class::new{
-            include CommandHandlers::ExitHandler
-        }::new(@exit))
+        install_default_command_handlers
       end
       attr_accessor :global_level
       
@@ -300,6 +296,13 @@ module Isi
         rescue Exception => e then @default_exception_handler.call(e)
         end}
       end
+      
+      def install_default_command_handlers
+        add_command_hanlder(Class::new{include CommandHandlers::ExitHandler}::
+            new(@exit))
+
+      end
+      
     end
     
     Isi::db_bye __FILE__, name
