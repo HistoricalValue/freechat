@@ -119,6 +119,18 @@ module Isi
             method(:warn_unhandled_command))
         @default_command_handler_returning_lambda =
             lambda { @default_command_handler }
+        @default_exception_handler = lambda { |e|
+          if e then
+            STDERR.puts e.inspect
+            if bktrc = e.backtrace then
+              STDERR.puts bktrc.join("\n")
+            end
+          end
+        }
+        
+        @command_line_handling_lambda = make_command_line_handling_lambda
+        @ignore_next_line = Isi::SynchronizedValue::new false
+        @SIGINT_handler_lambda = make_SIGINT_handler_lambda
         
         # Initialise default command handlers
         add_command_hanlder(Class::new{
@@ -198,22 +210,11 @@ module Isi
       
       # Starts this UI. This will cause prompts on the console etc.
       def start
+        # install signal handlers
+        install_signal_handlers
+        
         # Serve user command prompt in a different thread
-        Thread::new(&lambda { begin
-          loop do
-            show_prompt
-            command_line = STDIN.gets
-            case
-            when command_line.nil? then @exit.value = true
-            when match_data = command?(command_line) then
-              dispatch_command(extract_command(match_data))
-            end
-            break if @exit.value
-          end
-        rescue Exception => e
-          p e
-          puts e.backtrace.join("\n")
-        end})
+        Thread::new(&@command_line_handling_lambda)
       end
       
       def exit?
@@ -246,8 +247,13 @@ module Isi
       end
       
       def warn_unhandled_command comm
-        STDERR.puts "WARNING: unhandled command: #{comm.name}(#{
-            comm.args.join ', '})"
+        begin
+          raise Exception::new(
+            "WARNING: unhandled command: #{comm.name}(#{
+            comm.args.join ', '})")
+        rescue Exception => e
+          @default_exception_handler.call(e)
+        end
       end
 
       def dispatch_command(comm)
@@ -259,6 +265,40 @@ module Isi
       def show_prompt
         print @prompt
         STDOUT.flush
+      end
+      
+      def make_command_line_handling_lambda
+        lambda { begin
+          loop do
+            show_prompt
+            command_line = STDIN.gets
+            if @ignore_next_line.value then
+              @ignore_next_line.value = false
+              next
+            end
+            case
+            when command_line.nil? then @exit.value = true
+            when match_data = command?(command_line) then
+              dispatch_command(extract_command(match_data))
+            end
+            break if @exit.value
+          end
+        rescue Exception => e
+          @default_exception_handler.call(e)
+        end}
+      end
+      
+      def install_signal_handlers
+        Signal.trap('INT', @SIGINT_handler_lambda)
+      end
+      
+      def make_SIGINT_handler_lambda
+        lambda { |*args| begin
+          2.times { puts '' ; show_prompt }
+          puts '', 'Next input line will be ignored (just hit return)'
+          @ignore_next_line.value = true
+        rescue Exception => e then @default_exception_handler.call(e)
+        end}
       end
     end
     

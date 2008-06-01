@@ -18,7 +18,6 @@ module Isi
           def handle(comm)
             raise unless handles?(comm)
             @exit_sync.value = true
-            puts "EXIT IS NOW TRUE"
           end
         end
       end
