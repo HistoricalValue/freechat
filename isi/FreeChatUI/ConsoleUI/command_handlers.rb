@@ -7,6 +7,7 @@ module Isi
         ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
         
         require ModuleRootDir + 'exit_handler'
+        require ModuleRootDir + 'help_handler'
         
         Isi::db_bye __FILE__, name
       end

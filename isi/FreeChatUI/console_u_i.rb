@@ -222,7 +222,7 @@ module Isi
       # object which has two reader methods: +name+ and +args+. Name returns
       # the name of the command and args an array of the arguments for the
       # command, in the order they were given.
-      def add_command_hanlder command_handler
+      def add_command_handler command_handler
         @command_handlers.value << command_handler
       end
       
@@ -298,9 +298,8 @@ module Isi
       end
       
       def install_default_command_handlers
-        add_command_hanlder(Class::new{include CommandHandlers::ExitHandler}::
-            new(@exit))
-
+        add_command_handler(CommandHandlers::ExitHandler::new(@exit))
+        add_command_handler(CommandHandlers::HelpHandler::new)
       end
       
     end

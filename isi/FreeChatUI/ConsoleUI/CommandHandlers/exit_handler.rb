@@ -2,23 +2,23 @@ module Isi
   module FreeChatUI
     module ConsoleUI
       module CommandHandlers
-        module ExitHandler
-          ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
+        require ModuleRootDir + 'command_handler'
+        
+        class ExitHandler < CommandHandler
+          Isi::db_hello __FILE__, name
           
-          CommandNameRegex = /^\s*exit\s*$/i
+          CommandRegex = /^\s*e(xit)?\s*$/i
           def initialize exit_sync
+            super(CommandRegex)
             @exit_sync = exit_sync
-            @command_name_regex = CommandNameRegex
           end
-          attr_accessor :command_name_regex
-          
-          def handles?(comm)
-            @command_name_regex.match(comm.name)
-          end
+
           def handle(comm)
             raise unless handles?(comm)
             @exit_sync.value = true
           end
+          
+          Isi::db_bye __FILE__, name
         end
       end
     end
