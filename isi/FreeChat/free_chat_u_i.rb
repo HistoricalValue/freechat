@@ -22,11 +22,11 @@ module Isi
     # intented for messages not arriving from the predefined componenets. It
     # gets an extra argument which is the origin of the message.
     module FreeChatUI
-      FATAL  = 0x00
-      ERROR  = 0x01
-      WARNING= 0x04
-      INFO   = 0x08
-      DEBUG  = 0x10
+      OFF    = 0x00
+      FATAL  = 0x01
+      ERROR  = 0x02
+      WARNING= 0x08
+      INFO   = 0x10
       FINE   = 0x20
       FINER  = 0x40
       FINEST = 0x80

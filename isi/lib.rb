@@ -19,6 +19,22 @@ module Isi
     result
   end
   
+  # SycnrhonizedValue provides synchronized access to a field
+  class SynchronizedValue
+  def initialize value
+    @value = value
+    @mutex = Mutex::new
+  end
+
+  def value
+    @mutex.synchronize { @value }
+  end
+
+  def value= new_value
+    @mutex.synchronize { @value = new_value }
+  end
+      end
+
   # saying hello and bye in module loading
   def self.db_hello filename, modulename=nil
     puts "#{filename} :: <#{modulename}> hello" if $isi and $isi[:debug_hello]
@@ -96,46 +112,4 @@ module Isi
   Procs = {
     :to_s => lambda { |something_anything| something_anything.to_s }
   }
-  
-  # If this is ruby-1.8.6, we need to patch in ruby-1.9 methods
-  if RUBY_VERSION =~ /^1\.8/ then
-    class ::Object
-      def define_singleton_method(symb, &block)
-        unless instance_variable_defined?(:@singleton_methods)
-          @singleton_methods = {}
-        end
-        @singleton_methods[symb] = block
-      end
-      alias_method :old_method_missing, :method_missing
-      def method_missing(symb, *args, &block)
-        # first check if missing method is a singletong method
-        if instance_variable_defined?(:@singleton_methods) && meth = @singleton_methods[symb]
-        then meth.call(*args, &block)
-        else old_method_missing(symb, *args, &block)
-        end
-      end
-    end
-    
-    class ::Pathname
-      alias_method :to_path, :to_s
-    end
-    
-    class ::String
-      def encode(*args, &block) # god forgive me
-        self.dup
-      end
-      def bytes
-        bs = []
-        self.each_byte { |b| bs << b }
-        bs
-      end
-      def chars
-        self.bytes.map { |b| '' << b }
-      end
-      def each_char(&block)
-        self.chars.each(&block)
-      end
-    end
-  end
-  
 end

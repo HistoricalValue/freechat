@@ -27,33 +27,44 @@ module Isi
             @bbq  = nargs[:bbq  ] or raise ArgumentError::new('bbq'  )
             @id   = nargs[:my_id] or raise ArgumentError::new('my_id')
             @ui   = nargs[:ui   ]
+            
+            @discovering = Isi::SynchronizedValue::new false
           end
           
           # Initiates search procedure. Should find out all buddies who are
           # present and inform the linker about them. It will also discover
           # buddy mediums for buddies which are present.
           def find_all
-            bentries = @bbq.to_enum.map { |bid, entry| entry }
-            # First find which buddies are directly connectable?
-            ui_finding_all
-            bentries.reject! { |entry|
-              case
-              when entry.id == @id # this is me, i am not looking for me, i'm here
-                true
-              when raddr = entry.addresses.find { |addr|
-                ui_looking_for_buddy entry.id, addr
-                if @po.reachable? addr then true # ok
-                else ui_buddy_not_connectable entry.id, addr; false end
-              } then
-                @link.buddy_connectable entry.id, raddr
-                ui_buddy_connectable entry.id, raddr
-                true # reject this entry, it's been used
-              else
-                false # keep the entry for further search
-              end
+            @discovering.value = true
+            Thread::new {
+              bentries = @bbq.to_enum.map { |bid, entry| entry }
+              # First find which buddies are directly connectable?
+              ui_finding_all
+              bentries.reject! { |entry|
+                case
+                when entry.id == @id # this is me, i am not looking for me, i'm here
+                  true
+                when raddr = entry.addresses.find { |addr|
+                  ui_looking_for_buddy entry.id, addr
+                  if @po.reachable? addr then true # ok
+                  else ui_buddy_not_connectable entry.id, addr; false end
+                } then
+                  @link.buddy_connectable entry.id, raddr
+                  ui_buddy_connectable entry.id, raddr
+                  true # reject this entry, it's been used
+                else
+                  false # keep the entry for further search
+                end
+              }
+              ui_fine "Unfound buddies: #{bentries.inspect}"
+              @discovering.value = false
             }
-            ui_fine "Unfound buddies: #{bentries.inspect}"
           end
+          
+          def discovering?
+            @discovering.value
+          end
+          alias_method :finding?, :discovering?
           
           private ##############################################################
           def ui_looking_for_buddy bid, addr

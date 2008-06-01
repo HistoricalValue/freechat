@@ -1,6 +1,7 @@
 $isi = {} 
 require 'isi/lib'
 require 'isi/freechat'
+require 'isi/freechatui'
 include Isi::FreeChat::Protocol::MessageCentre::MessageTypes
 def m
 	A.new.message_restrictions A::STM_MESSAGE
@@ -50,4 +51,22 @@ def et
 	while true do 
 		puts 'lola' if enum.next
 	end
+end
+
+
+def r
+	$~.regexp if $~
+end
+
+$cwm = Isi
+def cwm
+	$cwm
+end
+
+def chm m
+	if m =~ /^::/ then $cwm = Object.const_get(m) else $cwm = m.const_get(m) end
+end
+
+def ifcuidcr
+	Isi::FreeChatUI::ConsoleUI::DefaultCommandRegex
 end

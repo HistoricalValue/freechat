@@ -10,7 +10,7 @@ require 'isi/freechatui'
 include Isi, Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre::MessageTypes,
     Isi::FreeChat::Protocol::Bitch, Isi::FreeChatUI
 
-$UI_LEVEL = Isi::FreeChat::FreeChatUI::FINER
+$UI_LEVEL = Isi::FreeChat::FreeChatUI::WARNING
 $ONLY_FROM = nil && /JUI-comm/
 $UI_DISREGARDS = !true
 class ShutupyUI
@@ -76,13 +76,14 @@ when '2' then
 else
   # Start 1
   Main_ui.m "Starting #{Self1} to port #{Port1}"
-  Yksi_ui = ShutupyUI::new(:id => Yksi_id)
+  Yksi_ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new({}) #ShutupyUI::new(:id => Yksi_id)
+  Yksi_ui.start
   Yksi_b  = Bitch::new Yksi_id, Yksi_ui
 end
 
-Main_ui.m 'Send kill signal to end'
-loop { sleep 1 }
-puts "THE END"
+#puts "THE END"
+
+until Yksi_ui.exit? do sleep 1 end
 
 rescue Exception => e
   puts "#{e.class} :: #{e}"

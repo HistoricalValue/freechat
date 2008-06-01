@@ -192,6 +192,8 @@ module Isi
           return false
         rescue Errno::ETIMEDOUT
           return false
+        rescue Errno::EHOSTUNREACH
+          return false
         end
         
         # Add's the specified message receiver to the list of receivers
