@@ -41,7 +41,11 @@ module Isi
         @windows = {}
         # active window ID
         @active_window = nil
-        @active_window_setter_lamda = lambda { |aw| @active_window = aw }
+        @active_window_setter_lambda = lambda { |aw|
+          @active_window = aw
+          notify_active_window_changed
+        }
+        @active_window_reader_lambda = lambda { @active_window }
         # Create private (system) windows and store their keys
         @system_windows_ids = SystemWindowsIDs::new
         @system_windows_ids.each_pair { |key, val| 
@@ -276,9 +280,25 @@ module Isi
           for ch in [
             CommandHandlers::ExitHandler::new(@exit),
             CommandHandlers::HelpHandler::new,
-            CommandHandlers::ListHandler::new(@windows.values),
+            CommandHandlers::ListHandler::new(@windows.values, @active_window_reader_lambda),
+            CommandHandlers::WindowHandler::new(@windows, @active_window_setter_lambda)
           ] ; @command_handlers[ch.command_name] = ch end
           @commands_abbrevs = @command_handlers.keys.abbrev
+        }
+      end
+      
+      # notifies everyone to be notified about the active window being changed
+      def notify_active_window_changed
+        # only self
+        active_window_changed
+      end
+      
+      # Take action when the active window changes
+      def active_window_changed
+        # show all unread lines
+        unlines = @windows[@active_window].read_lines
+        unlines.each { |unline|
+          puts "* #{unline}"
         }
       end
       

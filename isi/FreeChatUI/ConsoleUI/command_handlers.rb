@@ -9,6 +9,8 @@ module Isi
         require ModuleRootDir + 'exit_handler'
         require ModuleRootDir + 'help_handler'
         require ModuleRootDir + 'list_handler'
+        require ModuleRootDir + 'window_handler'
+        
         Isi::db_bye __FILE__, name
       end
     end
