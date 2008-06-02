@@ -21,19 +21,19 @@ module Isi
   
   # SycnrhonizedValue provides synchronized access to a field
   class SynchronizedValue
-  def initialize value
-    @value = value
-    @mutex = Mutex::new
-  end
+    def initialize value
+      @value = value
+      @mutex = Mutex::new
+    end
 
-  def value
-    @mutex.synchronize { @value }
-  end
+    def value
+      @mutex.synchronize { @value }
+    end
 
-  def value= new_value
-    @mutex.synchronize { @value = new_value }
+    def value= new_value
+      @mutex.synchronize { @value = new_value }
+    end
   end
-      end
 
   # saying hello and bye in module loading
   def self.db_hello filename, modulename=nil
@@ -43,6 +43,9 @@ module Isi
     puts "#{filename} :: <#{modulename}> bye" if $isi and $isi[:debug_bye]
   end
   
+  # Common end-of-line constant
+  ENDL = ENV['LINESEPARATOR'] || ENV['LINE_SEPARATOR'] || "\n"
+
   # turning Integers into arrays of bytes and back
   class ::Integer
     # Returns a list of bytes representing this number.
