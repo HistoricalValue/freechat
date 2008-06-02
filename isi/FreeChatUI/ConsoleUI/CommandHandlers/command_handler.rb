@@ -5,19 +5,15 @@ module Isi
         class CommandHandler
           Isi::db_hello __FILE__, name
           
-          def initialize regex
-            case
-            when regex.is_a?(Regexp) then @regex = regex
-            when regex.is_a?(String) then @regex = /^\s*#{Regexp::quote(regex)}\s*$/
-            else @regex = Regexp::try_convert regex
-            end
+          def initialize command_name
+            raise ArgumentError::new("command_name(#{command_name.inspect
+               }) is not a #{String}") unless command_name.is_a?(String)
+            @command_name = command_name
           end
-          attr_accessor :regex
-          alias_method :regexp, :regex
-          alias_method :regexp=, :regex=
+          attr_accessor :command_name
           
           def handles?(comm)
-            @regex.match(comm.name)
+            @command_name == comm
           end
           
           Isi::db_bye __FILE__, name

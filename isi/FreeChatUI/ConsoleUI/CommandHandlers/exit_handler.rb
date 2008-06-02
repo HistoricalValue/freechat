@@ -7,14 +7,13 @@ module Isi
         class ExitHandler < CommandHandler
           Isi::db_hello __FILE__, name
           
-          CommandRegex = /^\s*e(xit)?\s*$/i
+          CommandName = 'exit'
           def initialize exit_sync
-            super(CommandRegex)
+            super(CommandName)
             @exit_sync = exit_sync
           end
 
           def handle(comm)
-            raise unless handles?(comm)
             @exit_sync.value = true
           end
           

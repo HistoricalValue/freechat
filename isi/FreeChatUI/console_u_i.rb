@@ -3,6 +3,7 @@ module Isi
     Isi::db_hello __FILE__, name
     
     require 'isi/freechat'
+    require 'abbrev'
     
     # An UI for freechat that runs completely in console.
     # It does not use any special libraries, such an n-curses.
@@ -35,7 +36,7 @@ module Isi
       # * :command_regex : regex to match given commands
       # * :prompt : the prompt
       def initialize nargs={}
-        # windows are buffers of lines. Each window has a unique +WindowID+.
+        # windows are buffers of lines. Each window has a unique id.
         @windows = {}
         # Create private (system) windows and store their keys
         @system_windows_ids = SystemWindowsIDs::new
@@ -67,9 +68,6 @@ module Isi
         @exit = Isi::SynchronizedValue::new false
         @windows_sync = Isi::SynchronizedValue::new @windows
         
-        # Command handlers is an array
-        @command_handlers = Isi::SynchronizedValue::new []
-        
         @prompt = nargs[:prompt] || DefaultPrompt
         @default_command_handler = @@DefaultCommandHandlerClass::new(
             method(:warn_unhandled_command))
@@ -86,7 +84,14 @@ module Isi
         @ignore_next_line = Isi::SynchronizedValue::new false
         @SIGINT_handler_lambda = make_SIGINT_handler_lambda
         
-        # Initialise default command handlers
+        # command handlers in something like this
+        #     {command_name => command_handler}
+        # and it needs synchronisation.
+        @command_handlers = {}
+        # Used both for @command_handlers and @commands_abbrevs
+        @commands_mutex = Mutex::new
+        # Initialise default command handlers and aliases/abbreviations
+        # @command_handlers , @commands_abbrevs
         install_default_command_handlers
       end
       attr_accessor :global_level
@@ -174,12 +179,18 @@ module Isi
       end
       
       # command handlers are objects which handle a given command. They 
-      # must respond to handles?(comm) and handle(comm). _comm_ is a command
+      # must respond to handles?(comm), handle(comm) and command_name.
+      # command_name is used to calculate the set of unique abbreviations which
+      # can be used as shortbuts instead of complete command names.
+      # _comm_ is a command
       # object which has two reader methods: +name+ and +args+. Name returns
       # the name of the command and args an array of the arguments for the
       # command, in the order they were given.
       def add_command_handler command_handler
-        @command_handlers.value << command_handler
+        @commands_mutex.synchronize {
+          @command_handlers[command_handler.command_name] = command_handler
+          @commands_abbrevs = @command_handlers.keys.abbrev
+        }
       end
       
       private ##################################################################
@@ -209,9 +220,12 @@ module Isi
       end
 
       def dispatch_command(comm)
-        @command_handlers.value.find(@default_command_handler_returning_lambda){ |ch|
-          ch.handles? comm
-        }.handle comm
+        ch = nil
+        @commands_mutex.synchronize {
+          ch = @command_handlers[@commands_abbrevs[comm.name]]
+        }
+        ch = @default_command_handler_returning_lambda.call unless ch
+        ch.handle(comm)
       end
       
       def show_prompt
@@ -254,8 +268,14 @@ module Isi
       end
       
       def install_default_command_handlers
-        add_command_handler(CommandHandlers::ExitHandler::new(@exit))
-        add_command_handler(CommandHandlers::HelpHandler::new)
+        @commands_mutex.synchronize {
+          for ch in [
+            CommandHandlers::ExitHandler::new(@exit),
+            CommandHandlers::HelpHandler::new,
+            CommandHandlers::ListHandler::new(@windows.values),
+          ] ; @command_handlers[ch.command_name] = ch end
+          @commands_abbrevs = @command_handlers.keys.abbrev
+        }
       end
       
     end

@@ -114,9 +114,9 @@ module Isi
               })
           
           UnknownTopic = 'Unknown topic'
-          CommandRegex = /^\s*h(elp)?\s*$/
+          CommandName = 'help'
           def initialize 
-            super(CommandRegex)
+            super(CommandName)
             
             # Abbrevs is something like 
             #     {HelpModule => abbrev hash}
