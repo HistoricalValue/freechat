@@ -196,7 +196,7 @@ module Isi
       private ##################################################################
       def handle_system_message_from who, level, msg
         if level < @private_levels[who] then
-          @windows[@private_windows_ids[who]] << msg
+          @windows[@system_windows_ids[who]] << msg
         end
       end
       
