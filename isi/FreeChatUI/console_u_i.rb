@@ -37,7 +37,11 @@ module Isi
       # * :prompt : the prompt
       def initialize nargs={}
         # windows are buffers of lines. Each window has a unique id.
+        #     {window.id => window}
         @windows = {}
+        # active window ID
+        @active_window = nil
+        @active_window_setter_lamda = lambda { |aw| @active_window = aw }
         # Create private (system) windows and store their keys
         @system_windows_ids = SystemWindowsIDs::new
         @system_windows_ids.each_pair { |key, val| 
