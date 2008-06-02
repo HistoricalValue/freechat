@@ -56,7 +56,7 @@ module Isi
                   false # keep the entry for further search
                 end
               }
-              ui_fine "Unfound buddies: #{bentries.inspect}"
+              ui_fine "Unfound buddies: #{bentries.join(' / ')}"
               @discovering.value = false
             }
           end

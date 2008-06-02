@@ -27,7 +27,7 @@ module Isi
       PrivateLevels = Struct::new(:b, :g, :l, :mc, :po)
       SystemWindowsIDs = Struct::new(:b, :g, :l, :mc, :po)
       DefaultLevel = WARNING
-      DefaultCommandRegex = /^\/(?<command>\w+)\s+(?<argument>.*$)/
+      DefaultCommandRegex = /^\/(?<command>\w+|\/)\s+(?<argument>.*$)/
       DefaultPrompt = '> '
       # === Arguments
       # * :gl : global level
