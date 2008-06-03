@@ -98,6 +98,8 @@ module Isi
                     end
           end
         }
+        @default_exception_handler.define_singleton_method(:handle) { |e|
+          self[e]}
         
         @command_line_handling_lambda = make_command_line_handling_lambda
         @window_poller = make_window_poller
@@ -290,7 +292,7 @@ module Isi
       
       def make_command_line_handling_lambda
         lambda { begin
-          loop do
+          until self.exit?
             if silence?
               show_prompt
               command_line = STDIN.gets
@@ -304,6 +306,8 @@ module Isi
                 dispatch_command(extract_command(match_data))
               end
               break if @exit.value
+            else
+              sleep Rational(1,10) # sleep for a while
             end # silence?
           end
         rescue Exception => e
@@ -373,19 +377,24 @@ module Isi
       end
       
       def make_window_poller
-        lambda {
+        lambda { begin
           until self.exit?
             unless silence?
-              aw = active_window { |active_window|
+              aw = \
                 windows { |windows|
-                  windows[active_window]
+                  active_window { |active_window|
+                    windows[active_window]
+                  }
                 }
-              }
-              show_unread_lines(aw.read_lines)
+              if aw then show_unread_lines(aw.read_lines)
+                    else puts '! No active window, going back to silence',
+                              '/silence'
+                         self.silence=true
+              end
             end
             sleep 1
           end
-        }
+        rescue Exception => e then @default_exception_handler.handle(e) end}
       end
       
     end
