@@ -50,7 +50,7 @@ module Isi
             # {message_type => [handler, handler, ...] }
             loadMessageHandlers settings_path
           end
-          attr_reader :bbq, :po, :mc, :link, :id
+          attr_reader :bbq, :po, :mc, :link, :id, :finder
           attr_accessor :ui
 
           # Gets the bitch going.
