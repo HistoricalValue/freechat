@@ -29,7 +29,7 @@ module Isi
       }
       PrivateLevels = Struct::new(:b, :g, :l, :mc, :po)
       SystemWindowsIDs = Struct::new(:b, :g, :l, :mc, :po)
-      DefaultLevel = WARNING
+      DefaultLevel = INFO # WARNING
       DefaultCommandRegex = /^\/(?<command>\w+|\/)(\s+(?<argument>.*))?$/
       DefaultPrompt = '> '
       # === Lock order:
@@ -43,17 +43,17 @@ module Isi
       #   office levels
       # * :command_regex : regex to match given commands
       # * :prompt : the prompt
-      # * :message_centre : the message_centre (to send messages)
+      # * :bitch : the bitch (to send messages)
       # * :id : own id
       def initialize nargs={}
         @my_id = nargs[:id]
-        @message_centre = nargs[:message_centre]
+        @bitch = nargs[:bitch]
         raise ArgumentError::new('id is nil') unless @my_id
-        if @message_centre then
-          raise ArgumentError::new("message_centre is something weird: #{
-            @message_centre}") unless @message_centre.class <= MessageCentre
+        if @bitch then
+          raise ArgumentError::new("bitch is something weird: #{
+            @bitch.inspect}") unless @bitch.class <= MessageCentre
         end
-        @message_centre_mutex = Mutex::new
+        @bitch_mutex = Mutex::new
         # windows are buffers of lines. Each window has a unique id.
         #     {window.id => window}
         @windows = {}
@@ -180,8 +180,11 @@ module Isi
       end
       alias_method :b, :bitch_message
       
-      def generic_message level, msg
-        handle_system_message_from :g, level, msg
+      def generic_message from, level, msg
+        if level <= @private_levels.g then # TODO synchronize
+          window = get_or_create_window_for from
+          window << msg
+        end
       end
       alias_method :g, :generic_message
       
@@ -276,22 +279,22 @@ module Isi
         }
       end
       
-      def message_centre=(mc)
-        raise ArgumentError::new("message_centre is something weird: #{
-            mc}") unless mc.class <= MessageCentre
-        @message_centre_mutex.synchronize { @message_centre = mc }
+      def bitch=(bitch)
+        raise ArgumentError::new("bitch is something weird: #{bitch
+            }") unless bitch.class <= Bitch
+        @bitch_mutex.synchronize { @bitch = bitch }
       end
       
-      #     message_centre { } -> block result
-      # Calls thread safely the given block and passes the message centre
+      #     bitch { } -> block result
+      # Calls thread safely the given block and passes the bitch
       # as an argument.
-      def message_centre(&block) 
-        @message_centre_mutex.synchronize { block[@message_centre] }
+      def bitch(&block) 
+        @bitch_mutex.synchronize { block[@bitch] }
       end
       
       private ##################################################################
       def handle_system_message_from who, level, msg
-        if level < @private_levels[who] then
+        if level <= @private_levels[who] then
           windows { |windows|
             windows[@system_windows_ids[who]] << msg
           }
@@ -470,18 +473,12 @@ module Isi
             end
           }
         elsif not message =~ /^$/ #no spam: empty lines ignored (but no spacey lines)
-          rcp_bid = windows { |windows| windows[active_window].to_bid }
-          message_centre { |mc|
-            if mc then
-              mc.send_message(
-                  mc.create_message(
-                      STM_MESSAGE, FRM => @my_id, RCP => rcp_bid, CNT => message
-                  )
-              )
-            else
-              puts '! Cannot send message because message centre has not been set'
-            end
-          }
+          win = windows { |windows| windows[active_window] }
+          bitch { |b| if b then win << "^ #{message}"
+                                b.send_message_to(win.to_bid, message)
+                           else puts '! Cannot send message because bitch has not been set'
+                      end}
+        # else ignore
         end
       end
       
@@ -495,6 +492,17 @@ module Isi
             puts "! unknown response from system: #{arg.inspect}"
           end
         end
+      end
+      
+      def get_or_create_window_for(who)
+        windows { |windows| 
+          unless result = windows.find { |winid, win| win.to_bid == who }
+            result = Window::create(who)
+            windows[result.id] = result
+            result = result.id, result
+          end
+          result.last
+        }
       end
       
     end

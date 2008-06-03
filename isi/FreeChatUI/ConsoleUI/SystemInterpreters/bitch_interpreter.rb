@@ -7,10 +7,12 @@ module Isi
         class BitchInterpreter
           Isi::db_hello __FILE__, name
           
-          include SystemInterpreter
+          include SystemInterpreter,
+              Isi::FreeChat::Protocol::MessageCentre::MessageTypes
           
-          def initialize bitch
+          def initialize bitch, windows_giver
             @bitch = bitch
+            @windows = windows_giver
             # @responses -> { regex => response }
             install_responses
           end
@@ -55,6 +57,28 @@ module Isi
                   result << 'You might find that more are present in a while.'
                 end
                 result # return
+              },
+              %r[^\s*contact\s*$]i => proc {
+                ['You have to tell me _who_ you want to [contact].',
+                 'And also _what_ to tell them']},
+              %r[^\s*contact\s+(?<who>\w+)\s*$]i => proc { |md, _|
+                'You also have to tell me _what_ you want to say to ' +
+                md[:who] + '.' },
+              %r[^\s*contact\s+(?<who>\w+)\s+(?<what>\S.*)$]i => proc { |md, _|
+                who, what = md[:who], md[:what]
+                # if there is no window for this buddy make one
+                @windows.call { |windows| 
+                  unless buddy_window = windows.find { |winid, win|
+                      win.to_bid == who } then
+                    buddy_window = Window::create(who)
+                    windows[buddy_window.id] = buddy_window
+                  end
+                  buddy_window << "^ #{what}"
+                }
+                # then again, we must also send the message... asynchronously
+                # TODO make that asynchronous. The message centre and the post office have to be tampered with first.
+                b.send_message_to(who, what)
+                "OK, I will tell #{md[:who]} that you said \"#{md[:what]}\"."
               },
               %r[^$] => proc { 'What do you want? [Help]?' },
               %r[] => proc { |_, msg| 

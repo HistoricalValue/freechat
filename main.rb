@@ -82,8 +82,8 @@ else
   Yksi_ui.start
   Yksi_b  = Bitch::new Yksi_id, Yksi_ui
   Yksi_ui.bitch_interpreter = Isi::FreeChatUI::ConsoleUI::SystemInterpreters::
-      BitchInterpreter::new(Yksi_b)
-  Yksi_ui.message_centre = Yksi_b.mc
+      BitchInterpreter::new(Yksi_b, Yksi_ui.method(:windows))
+  Yksi_ui.bitch = Yksi_b
   Yksi_b.start
 end
 

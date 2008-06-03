@@ -184,6 +184,22 @@ module Isi
                     ).serialise
                 )
           end
+          
+          # Convenince method which creates a message and sends it
+          # to the buddy specified by _bid_.
+          #
+          # === Arguments
+          # * _bid_ is the buddy id
+          # * _cont_ is the message content
+          def send_message_to bid, cont
+            mc.send_message(
+                mc.create_message(STM_MESSAGE,
+                    FRM => id, RCP => bid, CNT => cont))
+          rescue SystemCallError => e
+            ui.b(FreeChatUI::ERROR, "ERORR: #{e.class.name}: #{e.message
+                }: message \"#{cont}\" failed to be sent")
+          end
+          
           private ##############################################################
           def loadSettings settings_path
             settings_path.mkpath
