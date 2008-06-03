@@ -68,6 +68,9 @@ module Isi
           @system_windows_ids[key] = val.id
           @windows[val.id] = val
         }
+        @system_windows_ids_values = @system_windows_ids.values
+        @is_system_window_id = method :system_window_id?
+        
         @global_level = nargs[:gl] || DefaultLevel
         @level_for = {}
         @private_levels = PrivateLevels::new(
@@ -239,6 +242,10 @@ module Isi
         @windows_mutex.synchronize { block[@windows] }
       end
       
+      def system_window_id?(id)
+        @system_windows_ids_values.include?(id)
+      end
+      
       private ##################################################################
       def handle_system_message_from who, level, msg
         if level < @private_levels[who] then
@@ -330,6 +337,7 @@ module Isi
             CommandHandlers::ListHandler::new(@windows_giver, @active_window_giver),
             CommandHandlers::WindowHandler::new(@windows_giver, @active_window_setter),
             CommandHandlers::SpeakHandler::new(@silence_setter),
+            CommandHandlers::CloseHandler::new(@windows_giver, @active_window_giver, @is_system_window_id)
           ] ; @command_handlers[ch.command_name] = ch end
           @commands_abbrevs = @command_handlers.keys.abbrev
         }
