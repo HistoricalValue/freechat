@@ -29,6 +29,11 @@ module Isi
       DefaultLevel = WARNING
       DefaultCommandRegex = /^\/(?<command>\w+|\/)\s+(?<argument>.*$)/
       DefaultPrompt = '> '
+      # === Lock order:
+      # * windows
+      # * active_window
+      # * silence
+      # 
       # === Arguments
       # * :gl : global level
       # * :b, :g, :l, :mc , :po : bitch, generic, linker, message centre, post
@@ -39,13 +44,16 @@ module Isi
         # windows are buffers of lines. Each window has a unique id.
         #     {window.id => window}
         @windows = {}
+        @windows_mutex = Mutex::new
+        @windows_giver = method :windows
         # active window ID
         @active_window = nil
-        @active_window_setter_lambda = lambda { |aw|
-          @active_window = aw
-          notify_active_window_changed
-        }
-        @active_window_reader_lambda = lambda { @active_window }
+        @active_window_mutex = Mutex::new
+        @active_window_setter = method :active_window=
+        @active_window_giver = method :active_window
+        # Silence state
+        @silence_sync = Isi::SynchronizedValue::new(true)
+        @silence_setter = method :silence=
         # Create private (system) windows and store their keys
         @system_windows_ids = SystemWindowsIDs::new
         @system_windows_ids.each_pair { |key, val| 
@@ -89,6 +97,7 @@ module Isi
         }
         
         @command_line_handling_lambda = make_command_line_handling_lambda
+        @window_poller = make_window_poller
         @ignore_next_line = Isi::SynchronizedValue::new false
         @SIGINT_handler_lambda = make_SIGINT_handler_lambda
         
@@ -180,6 +189,9 @@ module Isi
         
         # Serve user command prompt in a different thread
         Thread::new(&@command_line_handling_lambda)
+        # Window poller checks for unread lines in windows and prints them
+        # if there is no silence
+        Thread::new(&@window_poller)
       end
       
       def exit?
@@ -201,10 +213,38 @@ module Isi
         }
       end
       
+      def silence?
+        @silence_sync.value
+      end
+      
+      def silence= new_value
+        @silence_sync.value = new_value
+        notify_silence_changed(new_value)
+        new_value
+      end
+      
+      def active_window= aw
+        @active_window_mutex.synchronize {
+          @active_window = aw
+        }
+        notify_active_window_changed
+        aw
+      end
+      
+      def active_window(&block)
+        @active_window_mutex.synchronize { block[@active_window] }
+      end
+      
+      def windows(&block)
+        @windows_mutex.synchronize { block[@windows] }
+      end
+      
       private ##################################################################
       def handle_system_message_from who, level, msg
         if level < @private_levels[who] then
-          @windows[@system_windows_ids[who]] << msg
+          windows { |windows|
+            windows[@system_windows_ids[who]] << msg
+          }
         end
       end
       
@@ -244,7 +284,7 @@ module Isi
       def make_command_line_handling_lambda
         lambda { begin
           loop do
-            show_prompt
+            show_prompt if silence?
             command_line = STDIN.gets
             if @ignore_next_line.value then
               @ignore_next_line.value = false
@@ -263,12 +303,12 @@ module Isi
       end
       
       def install_signal_handlers
-        Signal.trap('INT', @SIGINT_handler_lambda)
+        Signal::trap('INT', @SIGINT_handler_lambda)
       end
       
       def make_SIGINT_handler_lambda
         lambda { |*args| begin
-          2.times { puts '' ; show_prompt }
+          puts '' ; show_prompt ; puts '' ; show_prompt
           puts '', 'Next input line will be ignored (just hit return)'
           @ignore_next_line.value = true
         rescue Exception => e then @default_exception_handler.call(e)
@@ -280,8 +320,9 @@ module Isi
           for ch in [
             CommandHandlers::ExitHandler::new(@exit),
             CommandHandlers::HelpHandler::new,
-            CommandHandlers::ListHandler::new(@windows.values, @active_window_reader_lambda),
-            CommandHandlers::WindowHandler::new(@windows, @active_window_setter_lambda)
+            CommandHandlers::ListHandler::new(@windows_giver, @active_window_giver),
+            CommandHandlers::WindowHandler::new(@windows_giver, @active_window_setter),
+            CommandHandlers::SilenceHandler::new(@silence_setter),
           ] ; @command_handlers[ch.command_name] = ch end
           @commands_abbrevs = @command_handlers.keys.abbrev
         }
@@ -295,15 +336,44 @@ module Isi
       
       # Take action when the active window changes
       def active_window_changed
-        # show all unread lines
-        unlines = @windows[@active_window].read_lines
-        unlines.each { |unline|
-          puts "* #{unline}"
+        # Do nothing, lines will be shown by poller
+      end
+      
+      def show_unread_lines(*args)
+        args.each { |arg|
+          case
+          when arg.is_a?(String) then puts "* #{arg}"
+          when arg.is_a?(Array) then show_unread_lines(*arg)
+          end
+        }
+      end
+      
+      def notify_silence_changed(silence)
+        # only self
+        silence_changed(silence)
+      end
+      
+      def silence_changed(silence)
+        # Nothing, things find out about silence by #silence?
+      end
+      
+      def make_window_poller
+        lambda {
+          until self.exit?
+            unless silence?
+              aw = active_window { |active_window|
+                windows { |windows|
+                  windows[active_window]
+                }
+              }
+              show_unread_lines(aw.read_lines)
+            end
+            sleep 1
+          end
         }
       end
       
     end
-    
     Isi::db_bye __FILE__, name
   end
 end

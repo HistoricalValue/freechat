@@ -9,20 +9,25 @@ module Isi
           WindowsInfo = Struct::new(:id, :title, :status, :active)
           
           CommandName = 'list'
-          def initialize windows, active_window_reader
+          def initialize windows_giver, active_window_giver
             super(CommandName)
-            @windows = windows
-            @active_window_reader = active_window_reader
+            @windows_giver = windows_giver
+            @active_window_giver = active_window_giver
           end
           
           def handle comm
-            windows_infos = @windows.sort { |a, b| a.id <=> b.id }.map!{ |win|
-              WindowsInfo::new(*
-                  [   win.id, 
-                      win.title,
-                      if win.unread? then '*' else '-' end,
-                      if win.id == @active_window_reader.call then ' <-' end
-                  ].map(&:to_s))
+            windows_sorted = @windows_giver.call { |windows|
+              windows.values.sort { |a, b| a.id <=> b.id }
+            }
+            windows_infos = @active_window_giver.call { |active_window|
+              windows_sorted.map!{ |win|
+                WindowsInfo::new(*
+                    [   win.id, 
+                        win.title,
+                        if win.unread? then '*' else '-' end,
+                        if win.id == active_window then ' <-' end
+                    ].map(&:to_s))
+              }
             }
             max_id_len = windows_infos.max { |a, b|
               a.id.length <=> b.id.length
@@ -32,8 +37,6 @@ module Isi
             }.title.length
             max_status_len = 1
             windows_infos.each { |i|
-              active_mark = (if i.id == @active_window_reader.call
-                             then ' <-' end)
               puts('%*s : %*s %*s%s' % [
                   max_id_len, i.id,
                   max_title_len, i.title,

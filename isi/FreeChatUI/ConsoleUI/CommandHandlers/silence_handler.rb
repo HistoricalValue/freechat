@@ -2,7 +2,7 @@ module Isi
   module FreeChatUI
     module ConsoleUI
       module CommandHandlers
-        require ModuleRootDir + 'command_hanlder'
+        require ModuleRootDir + 'command_handler'
         
         class SilenceHandler < CommandHandler
           Isi::db_hello __FILE__, name
@@ -14,20 +14,7 @@ module Isi
           end
 
           def handle(comm)
-            # pass a true, for extra info
-            args = []
-            if @silence_setter.respond_to?(:lambda?)
-              if @silence_setter.lambda?
-                if @silence_setter.respond_to?(:arity)
-                  if @silence_setter.arity != 0
-                    args[0] = true
-                  end
-                end
-              else
-                args[0] = true
-              end
-            end
-            @silence_setter.call(*args)
+            @silence_setter[true]
           end
           
           Isi::db_bye __FILE__, name

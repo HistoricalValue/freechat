@@ -8,9 +8,9 @@ module Isi
           Isi::db_hello __FILE__, name
           
           CommandName = 'window'
-          def initialize windows, setter
+          def initialize windows_giver, setter
             super(CommandName)
-            @windows = windows
+            @windows_giver = windows_giver
             @setter = setter
           end
           
@@ -28,7 +28,7 @@ module Isi
             raise CommandHandlerException::new("No window ID given") unless winid
             winid_i = winid.to_i
             raise CommandHandlerException::new("Invalid ID: #{winid}") unless 
-                @windows.any? { |k, _| k == winid_i }
+                 @windows_giver.call { |ww| ww.any? { |id, _| id == winid_i } }
             winid = winid_i
             # return
             winid
