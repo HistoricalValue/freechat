@@ -7,16 +7,22 @@ module Isi
         Isi::db_hello __FILE__, name
         
         @@last_id = 0
-        def initialize id, buf_size, title=''
+        def initialize id, buf_size, title='', bid=nil
           raise ArgumentError::new('Window id is nil') unless id
           @id = id
           @lines = []
           @title = title
           @buf_size = buf_size
           @cursor = 0 # points to the first unread line
+          @bid = bid
         end
         attr_reader :id, :title
         attr_accessor :buf_size
+        
+        def to_bid
+          @bid
+        end
+        alias_method :to_buddy_id, :to_bid
         
         def each_line(&block)
           @lines.each(&block)
@@ -87,11 +93,11 @@ module Isi
         
         # instances accessible only through factory methods
         private_class_method :new
-        def self.create title='(untitled)', buf_size=1<<14
+        def self.create title='(untitled)', buf_size=1<<14, bid=nil
           raise ArgumentError::new("buf_size(#{buf_size.inspect
               }) must be an Integer") unless buf_size.is_a?(Integer)
           @@last_id += 1
-          new(@@last_id, buf_size, title)
+          new(@@last_id, buf_size, title, if bid then bid else title end)
         end
         
         private ################################################################

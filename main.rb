@@ -76,9 +76,15 @@ when '2' then
 else
   # Start 1
   Main_ui.m "Starting #{Self1} to port #{Port1}"
-  Yksi_ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new(:b => Isi::FreeChat::FreeChatUI::FINEST) #ShutupyUI::new(:id => Yksi_id)
+  Yksi_ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new(
+      :id => Yksi_id,
+      :b => Isi::FreeChat::FreeChatUI::FINEST) #ShutupyUI::new(:id => Yksi_id)
   Yksi_ui.start
   Yksi_b  = Bitch::new Yksi_id, Yksi_ui
+  Yksi_ui.bitch_interpreter = Isi::FreeChatUI::ConsoleUI::SystemInterpreters::
+      BitchInterpreter::new(Yksi_b)
+  Yksi_ui.message_centre = Yksi_b.mc
+  Yksi_b.start
 end
 
 #puts "THE END"

@@ -12,9 +12,12 @@ module Isi
     # type /help .
     module ConsoleUI
       ModuleRootDir = Pathname(__FILE__).dirname + name.split('::').last
-      include Isi::FreeChat::FreeChatUI
+      include Isi::FreeChat::FreeChatUI,
+          Isi::FreeChat::Protocol::MessageCentre::MessageTypes,
+          Isi::FreeChat::Protocol::MessageCentre
       require ModuleRootDir + 'command_handlers'
       require ModuleRootDir + 'window'
+      require ModuleRootDir + 'system_interpreters'
       
       @@DefaultCommandHandlerClass = Class::new {
         def initialize warn_meth
@@ -27,7 +30,7 @@ module Isi
       PrivateLevels = Struct::new(:b, :g, :l, :mc, :po)
       SystemWindowsIDs = Struct::new(:b, :g, :l, :mc, :po)
       DefaultLevel = WARNING
-      DefaultCommandRegex = /^\/(?<command>\w+|\/)\s+(?<argument>.*$)/
+      DefaultCommandRegex = /^\/(?<command>\w+|\/)(\s+(?<argument>.*))?$/
       DefaultPrompt = '> '
       # === Lock order:
       # * windows
@@ -40,7 +43,17 @@ module Isi
       #   office levels
       # * :command_regex : regex to match given commands
       # * :prompt : the prompt
+      # * :message_centre : the message_centre (to send messages)
+      # * :id : own id
       def initialize nargs={}
+        @my_id = nargs[:id]
+        @message_centre = nargs[:message_centre]
+        raise ArgumentError::new('id is nil') unless @my_id
+        if @message_centre then
+          raise ArgumentError::new("message_centre is something weird: #{
+            @message_centre}") unless @message_centre.class <= MessageCentre
+        end
+        @message_centre_mutex = Mutex::new
         # windows are buffers of lines. Each window has a unique id.
         #     {window.id => window}
         @windows = {}
@@ -92,12 +105,7 @@ module Isi
             method(:warn_unhandled_command))
         @default_command_handler_returning_lambda =
             lambda { @default_command_handler }
-        @default_exception_handler = lambda { |e|
-          if e then STDERR.puts e.inspect
-                    if bktrc = e.backtrace then STDERR.puts bktrc.join("\n")
-                    end
-          end
-        }
+        @default_exception_handler = make_default_exception_handler
         @default_exception_handler.define_singleton_method(:handle) { |e|
           self[e]}
         
@@ -115,6 +123,11 @@ module Isi
         # Initialise default command handlers and aliases/abbreviations
         # @command_handlers , @commands_abbrevs
         install_default_command_handlers
+        
+        # System interpreters are added later by assignment-methods.
+        # @system_interpreters -> {system_window_id => interpreter}
+        @system_interpreters = {}
+        @system_interpreters_mutex = Mutex::new
       end
       attr_accessor :global_level
       
@@ -248,6 +261,34 @@ module Isi
         @system_windows_ids_values.include?(id)
       end
       
+      def bitch_interpreter=(interpreter)
+        @system_interpreters_mutex.synchronize {
+          @system_interpreters[@system_windows_ids.b] = interpreter
+        }
+      end
+      
+      #     bitch_interpreter { } -> block result
+      # Calls thread safely the given block and passes the system interpreter
+      # as an argument.
+      def bitch_interpreter(&block)
+        @system_interpreters_mutex.syncrhonize {
+          block[@system_interpreters[@system_windows_ids.b]]
+        }
+      end
+      
+      def message_centre=(mc)
+        raise ArgumentError::new("message_centre is something weird: #{
+            mc}") unless mc.class <= MessageCentre
+        @message_centre_mutex.synchronize { @message_centre = mc }
+      end
+      
+      #     message_centre { } -> block result
+      # Calls thread safely the given block and passes the message centre
+      # as an argument.
+      def message_centre(&block) 
+        @message_centre_mutex.synchronize { block[@message_centre] }
+      end
+      
       private ##################################################################
       def handle_system_message_from who, level, msg
         if level < @private_levels[who] then
@@ -263,7 +304,10 @@ module Isi
       end
       
       def extract_command(match_data)
-        Command::new(match_data[:command], match_data[:argument].split(' '))
+        Command::new(match_data[:command],
+          if argument = match_data[:argument] then argument.split(' ')
+                                              else []
+          end)
       end
       
       def warn_unhandled_command comm
@@ -295,7 +339,7 @@ module Isi
           until self.exit?
             if silence?
               show_prompt
-              command_line = STDIN.gets
+              command_line = STDIN.gets; command_line.chomp!
               if @ignore_next_line.value then
                 @ignore_next_line.value = false
                 next
@@ -304,6 +348,8 @@ module Isi
               when command_line.nil? then @exit.value = true
               when match_data = command?(command_line) then
                 dispatch_command(extract_command(match_data))
+              else # it is a message to someone. God?
+                new_message(command_line)
               end
               break if @exit.value
             else
@@ -331,6 +377,20 @@ module Isi
           end
         rescue Exception => e then @default_exception_handler.call(e)
         end}
+      end
+      
+      def make_default_exception_handler
+        lambda { |e|
+          if e then STDERR.puts e.inspect
+                    if bktrc = e.backtrace then STDERR.puts bktrc.join("\n")
+                    end
+                    # also show to user in a pretty way if we are in
+                    # silence
+                    if silence?
+                      puts "! #{e.message}"
+                    end
+          end
+        }
       end
       
       def install_default_command_handlers
@@ -395,6 +455,46 @@ module Isi
             sleep 1
           end
         rescue Exception => e then @default_exception_handler.handle(e) end}
+      end
+      
+      def new_message(message)
+        # is there an active window?
+        active_window = active_window { |aw| aw }
+        if active_window.nil? then
+          puts '! No active window, message send to the NoWhereMist'
+        elsif system_window_id?(active_window)
+          @system_interpreters_mutex.synchronize {
+            if interpreter = @system_interpreters[active_window] then
+              response = interpreter.new_message(message)
+              show_system_response(response)
+            end
+          }
+        elsif not message =~ /^$/ #no spam: empty lines ignored (but no spacey lines)
+          rcp_bid = windows { |windows| windows[active_window].to_bid }
+          message_centre { |mc|
+            if mc then
+              mc.send_message(
+                  mc.create_message(
+                      STM_MESSAGE, FRM => @my_id, RCP => rcp_bid, CNT => message
+                  )
+              )
+            else
+              puts '! Cannot send message because message centre has not been set'
+            end
+          }
+        end
+      end
+      
+      def show_system_response(*args)
+        for arg in args do
+          klass = arg.class
+          case
+          when klass <= Array then show_system_response(*arg)
+          when klass <= String then puts ". #{arg}"
+          else
+            puts "! unknown response from system: #{arg.inspect}"
+          end
+        end
       end
       
     end

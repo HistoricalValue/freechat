@@ -12,7 +12,7 @@ module Isi
           DefaultSettingsPath = Pathname(ENV['HOME']) + '.config' + 'freechat'
           
           def initialize my_id,
-              ui = Isi::FreeChat::FreeChatUI::new,
+              ui = Class::new { include Isi::FreeChat::FreeChatUI }::new,
               settings_path = DefaultSettingsPath
             @ui = ui
             @id = my_id
@@ -49,16 +49,24 @@ module Isi
             # @message_handlers is something like this
             # {message_type => [handler, handler, ...] }
             loadMessageHandlers settings_path
-            
+          end
+          attr_reader :bbq, :po, :mc, :link, :id
+          attr_accessor :ui
+
+          # Gets the bitch going.
+          # The bitch will (with its turn) set everything else the needs
+          # to be started up to get going too.
+          # Currently that means: open up the post office, start the 
+          # message handlers and ask the finder to find all.
+          def start
             # open post office - we are ready to go
             @po.open_up
             # Start message handlers
             @message_handlers.each { |type, mhs| mhs.each { |mh| mh.start } }
             # Ask finder to find as much as it can
-            @finder.find_all
+            @finder.find_all  
           end
-          attr_reader :bbq, :po, :mc, :link, :id, :ui
-
+          
           # Add the given handler to the list of message handlers that the
           # bitch will notify upon arrival of messages.
           #
