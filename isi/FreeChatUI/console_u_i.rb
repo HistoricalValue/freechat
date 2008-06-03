@@ -284,18 +284,20 @@ module Isi
       def make_command_line_handling_lambda
         lambda { begin
           loop do
-            show_prompt if silence?
-            command_line = STDIN.gets
-            if @ignore_next_line.value then
-              @ignore_next_line.value = false
-              next
-            end
-            case
-            when command_line.nil? then @exit.value = true
-            when match_data = command?(command_line) then
-              dispatch_command(extract_command(match_data))
-            end
-            break if @exit.value
+            if silence?
+              show_prompt
+              command_line = STDIN.gets
+              if @ignore_next_line.value then
+                @ignore_next_line.value = false
+                next
+              end
+              case
+              when command_line.nil? then @exit.value = true
+              when match_data = command?(command_line) then
+                dispatch_command(extract_command(match_data))
+              end
+              break if @exit.value
+            end # silence?
           end
         rescue Exception => e
           @default_exception_handler.call(e)
@@ -308,9 +310,14 @@ module Isi
       
       def make_SIGINT_handler_lambda
         lambda { |*args| begin
-          puts '' ; show_prompt ; puts '' ; show_prompt
-          puts '', 'Next input line will be ignored (just hit return)'
-          @ignore_next_line.value = true
+          if silence? then 
+            puts '' ; show_prompt ; puts '' ; show_prompt
+            puts '', 'Next input line will be ignored (just hit return)'
+            @ignore_next_line.value = true
+          else # no silans
+            # back in silans mode
+            self.silence = true
+          end
         rescue Exception => e then @default_exception_handler.call(e)
         end}
       end
@@ -322,7 +329,6 @@ module Isi
             CommandHandlers::HelpHandler::new,
             CommandHandlers::ListHandler::new(@windows_giver, @active_window_giver),
             CommandHandlers::WindowHandler::new(@windows_giver, @active_window_setter),
-            CommandHandlers::SilenceHandler::new(@silence_setter),
             CommandHandlers::SpeakHandler::new(@silence_setter),
           ] ; @command_handlers[ch.command_name] = ch end
           @commands_abbrevs = @command_handlers.keys.abbrev
