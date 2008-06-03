@@ -323,6 +323,7 @@ module Isi
             CommandHandlers::ListHandler::new(@windows_giver, @active_window_giver),
             CommandHandlers::WindowHandler::new(@windows_giver, @active_window_setter),
             CommandHandlers::SilenceHandler::new(@silence_setter),
+            CommandHandlers::SpeakHandler::new(@silence_setter),
           ] ; @command_handlers[ch.command_name] = ch end
           @commands_abbrevs = @command_handlers.keys.abbrev
         }

@@ -11,6 +11,7 @@ module Isi
         require ModuleRootDir + 'list_handler'
         require ModuleRootDir + 'window_handler'
         require ModuleRootDir + 'silence_handler'
+        require ModuleRootDir + 'speak_handler'
         
         Isi::db_bye __FILE__, name
       end
