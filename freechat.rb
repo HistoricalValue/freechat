@@ -242,7 +242,17 @@ This launcher can start two different things:
       #{thl '-'} Prints a short descriptions of available commands and exits
         successfully. No colours are used, even if #{thl tblue '--colour'} is used.
 
-      #{thl '-'} 
+#{thl tred '-v'},#{thl tblue '--verbose'}=#{tudl 'LEVEL'}
+      #{thl '-'} Sets the verbosity level of the application to level #{tudl 'LEVEL'}. The higher
+        the level, the more information is reported. If this option is passed
+        with its short form (#{thl tred '-v'}), then #{tudl 'LEVEL'} is considered to be 1. Valid
+        #{tudl 'LEVEL'} values are natural numbers from 0 (no verbosity) to any
+        higher number (more and more verbosity).
+      #{thl '-'} This option is totally useless under normal circumstances. All possible
+        information that the use could require is available through the
+        interface in some way. This option is mostly used for debugging or
+        when something goes wrong and further information is required in order
+        to find out what.
 EOS
 
 end # Main
