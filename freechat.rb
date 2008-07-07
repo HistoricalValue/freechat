@@ -238,6 +238,10 @@ This launcher can start two different things:
    #{thl tblue '--[no-]colour'}
       #{thl '-'} Sets usage of colours.
 
+#{thl tred '-h'},#{thl tblue '--[no-]help'}
+      #{thl '-'} Prints a short descriptions of available commands and exits
+        successfully. No colours are used, even if #{thl tblue '--colour'} is used.
+
       #{thl '-'} 
 EOS
 
