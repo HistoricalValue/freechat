@@ -221,6 +221,17 @@ This launcher can start two different things:
         discouraged unless one knows what she is doing. Currently the preferred
         way to edit the #{tudl 'bbq config'} is by invoking the #{tudl 'bbq editor'} (see
         #{thl tblue '--mode'}=#{tudl 'bbqedit'})
+
+   #{thl tblue '--[no-]manual'}
+      #{thl '-'} Sets manual mode on or off. On manual mode, this text will be printed
+        and the application will exit successfully.
+      #{thl '-'} The manual page (as it is
+        probably apparent from this text) uses standard ANSI escape sequences
+        to colour the terminal text. If one wishes to disable those colours,
+        #{thl tblue '--manual'} can be called in conjuction with #{thl tblue '--no-colour'} (see
+        #{thl tblue '--[no-]colour'}).
+
+      #{thl '-'} 
 EOS
 
 end # Main
