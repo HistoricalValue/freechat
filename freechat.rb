@@ -2,6 +2,9 @@ $isi = Hash[:db_hello, false, :db_bye, false]
 
 require 'pathname'
 require 'optparse'
+require 'isi/lib'
+require 'isi/freechat'
+require 'isi/freechatui'
 
 module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
@@ -122,11 +125,16 @@ module Main
     opts = op.parse(args)
     if    opts.help   then puts(op) # then exit
     elsif opts.manual then puts(Manual) # then exit
-    elsif opts.default_mode_used then
-      warn 'Using default --mode=freechat'
+    elsif opts.mode == OptionParser::MODE_FREECHAT then # noraml operation
+      if opts.default_mode_used then warn 'Using default --mode=freechat' end
+      # Starting the bitch... Tough job
+      #ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new()
+    elsif opts.mode == OptionParser::MODE_BBQEDIT then # edit bbq
+      puts 'starting edit bbq - coming soon'
+    else
+      raise Hell #TODO - Create Hell
     end
-  rescue ArgumentError,
-         ::OptionParser::InvalidArgument,
+  rescue ::OptionParser::InvalidArgument,
          ::OptionParser::MissingArgument,
          ::OptionParser::InvalidOption   => e
     puts "Argument error: #{e.message}"
