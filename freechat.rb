@@ -6,7 +6,7 @@ require 'optparse'
 module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
       :config_dir, :message_handlers_config_file, :bbq_config_file,
-      :verbose_level, :manual)
+      :verbose_level, :manual, :colour)
   class Options
     def inspect
       "#<struct #{self.class.name} #{ result = []
@@ -41,7 +41,8 @@ module Main
           CONFIG_MESSAGE_HANDLERS_DEFAULT, # message_handlers_config_file
           CONFIG_BBQ_DEFAULT, # bbq_config_file
           VERBOSE_LEVEL_DEFAULT, # verbose_level
-          false # manual
+          false, # manual
+          false  # colour
           )
       @option_parser = ::OptionParser::new { |op|
         op.banner = "#{op.program_name
@@ -57,6 +58,9 @@ module Main
           raise ArgumentError::new("Invalid mode argument: #{mode}") unless
               (index = MODE_VALUES.index(mode))
           @options.mode = index
+        }
+        op.on('--[no-]colour', 'Switch colours on or off') { |colour|
+          @options.colour = colour
         }
         op.on('--config-dir=DIR', 'Specify the root dir of config files',
             "(default=#{CONFIG_DIR_DEFAULT})") { |config_dir|
