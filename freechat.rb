@@ -235,6 +235,9 @@ This launcher can start two different things:
         #{thl tblue '--manual'} can be called in conjuction with #{thl tblue '--no-colour'} (see
         #{thl tblue '--[no-]colour'}).
 
+   #{thl tblue '--[no-]colour'}
+      #{thl '-'} Sets usage of colours.
+
       #{thl '-'} 
 EOS
 
