@@ -1,3 +1,4 @@
+# encoding: UTF-8
 $isi = Hash[:db_hello, false, :db_bye, false]
 
 require 'pathname'
@@ -9,8 +10,11 @@ require 'isi/freechatui'
 module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
       :config_dir, :message_handlers_config_file, :bbq_config_file,
-      :verbose_level, :manual, :colour, :hell)
+      :verbose_level, :manual, :colour, :hell, :ip, :default_ip_used)
   class Options
+    def initialize(*args)
+      super(*args[0..-2])
+    end
     def inspect
       "#<struct #{self.class.name} #{ result = []
         each_pair { |name, value|
@@ -27,6 +31,7 @@ module Main
     alias_method :default_mode_used?, :default_mode_used
     alias_method :manual?, :manual
     alias_method :help?, :help
+    alias_method :default_ip_used?, :default_ip_used
   end
   
   class OptionParser
@@ -39,18 +44,22 @@ module Main
         'message_handlers.config')
     CONFIG_BBQ_DEFAULT = File.join(CONFIG_DIR_DEFAULT, 'bbq.str')
     VERBOSE_LEVEL_DEFAULT = 0
+    IP_DEFAULT = '0.0.0.0'
     def initialize(nargs = {})
       @options = Options::new(
-          false, # help
-          nil,   # mode
-          false, # default_mode_used
-          CONFIG_DIR_DEFAULT, # config_dir
+          false                          , # help
+          nil                            , # mode
+          false                          , # default_mode_used
+          CONFIG_DIR_DEFAULT             , # config_dir
           CONFIG_MESSAGE_HANDLERS_DEFAULT, # message_handlers_config_file
-          CONFIG_BBQ_DEFAULT, # bbq_config_file
-          VERBOSE_LEVEL_DEFAULT, # verbose_level
-          false, # manual
-          false, # colour
-          false  # hell
+          CONFIG_BBQ_DEFAULT             , # bbq_config_file
+          VERBOSE_LEVEL_DEFAULT          , # verbose_level
+          false                          , # manual
+          false                          , # colour
+          false                          , # hell
+          nil                            , # ip/interface to bind to
+          false                          , # default_ip_used
+          nil
           )
       @option_parser = ::OptionParser::new { |op|
         op.banner = "#{op.program_name
@@ -66,6 +75,10 @@ module Main
           raise ArgumentError::new("Invalid mode argument: #{mode}") unless
               (index = MODE_VALUES.index(mode))
           @options.mode = index
+        }
+        op.on('--ip=IP', 'IP/Local interface to bind to',
+            "(default=#{IP_DEFAULT})") { |ip|
+          @options.ip = ip
         }
         op.on('--[no-]colour', 'Switch colours on or off') { |colour|
           @options.colour = colour
@@ -123,6 +136,11 @@ module Main
         @options.mode = MODE_DEFAULT
         @options.default_mode_used = true
       end
+      # if no ip bind address specified, assign default
+      unless @options.ip
+        @options.ip = IP_DEFAULT
+        @options.default_ip_used = true
+      end
       # transform all paths to Pathnames
       for member in [:config_dir, :message_handlers_config_file,
           :bbq_config_file] do
@@ -142,12 +160,18 @@ module Main
   def main(args)
     op = OptionParser::new
     opts = op.parse(args)
-    if    opts.help?   then puts(op) # then exit
-    elsif opts.manual? then puts(Manual) # then exit
+    if    opts.help?   then
+      puts(op) # then exit
+    elsif opts.manual? then
+      puts "(manual page, char_len=#{Manual.length}, byte_len=#{
+          Manual.bytesize}. To view without colours try --no-colour)"
+      puts(Manual) # then exit
     elsif !opts.hell? && # hell level cheat
            opts.mode == OptionParser::MODE_FREECHAT 
            then # noraml operation
-      warn 'Using default --mode=freechat' if opts.default_mode_used?
+      note 'Using default --mode=freechat' if opts.default_mode_used?
+      warn "Using default binding interface (IP=#{OptionParser::IP_DEFAULT})" \
+          if opts.default_ip_used
       # Starting the bitch... Tough job
       #stardabitch
       #ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new()
@@ -166,6 +190,9 @@ module Main
     puts "Hell: #{e.message}"
   end # Main#main()
 
+  def note msg
+    puts(' - [notice ] ' + msg)
+  end # Main#note()
   def warn msg
     puts(' = [warning] ' + msg)
   end # Main#warn()
@@ -205,14 +232,14 @@ This launcher can start two different things:
 #{thl tblue '|'} The #{thl 'freechat client'} is the normal operation mode. It is a client           #{thl tblue '|'}
 #{thl tblue '|'} which provides a command line interface to the freechat protocol, which is #{thl tblue '|'}
 #{thl tblue '|'} running under the interface. A complete manual of usage if available at    #{thl tblue '|'}
-#{thl tblue '|'} runtime through the command line interface. To access the basic help, one  #{thl tblue '|'}
+#{thl tblue '|'} run-time through the command line interface. To access the basic help, one  #{thl tblue '|'}
 #{thl tblue '|'} can give the command "#{thl '/help'}" as soon as the interface is started.          #{thl tblue '|'}
 #{thl tblue '\----------------------------------------------------------------------------/'}
 
 #{thl tblue '/----------------------------------------------------------------------------\\'}
 #{thl tblue '|'} The #{thl 'buddybook editor'} is a simple command line interface to manage          #{thl tblue '|'}
 #{thl tblue '|'} the entries of the buddybook. A complete manual of usage is available for  #{thl tblue '|'}
-#{thl tblue '|'} the #{thl 'buddybook editor'} at runtime as well.                                   #{thl tblue '|'}
+#{thl tblue '|'} the #{thl 'buddybook editor'} at run-time as well.                                   #{thl tblue '|'}
 #{thl tblue '\----------------------------------------------------------------------------/'}
 
 #{thl tyellow 'Explanation of command line arguments'}
@@ -220,17 +247,23 @@ This launcher can start two different things:
       #{thl '-'} Selects operation mode. #{tudl 'MODE'} can be either "#{tudl 'freechat'}" or "#{tudl 'bbqedit'}", or
         any unambiguous initial part of those arguments.
       #{thl '-'} "#{tudl 'freechat'}" will start the freechat client. A complete manual of usage is
-        available at runtime throught the freechat command line interface. To
+        available at run-time throught the freechat command line interface. To
         access the basic help menu one can give the command "#{thl '/help'}" as soon as
         the interface is started.
       #{thl '-'} "#{tudl 'bbqedit'}" will start the buddy book editor. A complete manual of usage
-        is available at runtime as well.
+        is available at run-time as well.
+
+   #{thl tblue '--ip'}=#{tudl 'IP'}
+      #{thl '-'} Specifies the local #{tudl 'IP'} to bind to. This is used for the port which
+        is listening for incoming connections from other clients.
+      #{thl '-'} WARNING: If an #{tudl 'IP'} is not specified then the default is #{tudl OptionParser::IP_DEFAULT}#{if OptionParser::IP_DEFAULT == '0.0.0.0' then ', which
+        will accept connections from any interface.' else '.' end}
 
    #{thl tblue '--config-dir'}=#{tudl 'DIR'}
-      - Specifies the configuration directory. The default is deduced by the
+      #{thl '-'} Specifies the configuration directory. The default is deduced by the
         value of the #{tudl 'HOME'} environment variable ($HOME/.config/freechat). This
         is the root configuration directory in which are expected to be found
-        (under specific subdirectories sometimes) all configuration files. For
+        (under specific sub-directories sometimes) all configuration files. For
         further tuning of configuration files, one can use the #{thl "#{tblue '--config-'}*"}
         arguments.
 
@@ -266,7 +299,7 @@ This launcher can start two different things:
       #{thl '-'} The manual page (as it is
         probably apparent from this text) uses standard ANSI escape sequences
         to colour the terminal text. If one wishes to disable those colours,
-        #{thl tblue '--manual'} can be called in conjuction with #{thl tblue '--no-colour'} (see
+        #{thl tblue '--manual'} can be called in conjunction with #{thl tblue '--no-colour'} (see
         #{thl tblue '--[no-]colour'}).
 
    #{thl tblue '--[no-]colour'}
@@ -287,6 +320,10 @@ This launcher can start two different things:
         interface in some way. This option is mostly used for debugging or
         when something goes wrong and further information is required in order
         to find out what.
+
+   #{thl tblue '--σκατιλίς'}=#{tudl 'το_όνομά_σου'}
+      #{thl '-'} Κάνει σάμμον την #{thl 'Σκατιλίς'}, το μαύρο φόρεμά σου. Πετάγονται #{thl 'Δέρεβιρν'}
+        από παντού και ξεχειλίζει διάρροια από κάθε πηγή υγρού (πχ. ουρήθρα).
 EOS
 
 end # Main
@@ -295,4 +332,5 @@ if __FILE__ == $0 then
   include Main
   main(ARGV)
 end
+
 

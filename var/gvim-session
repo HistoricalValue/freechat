@@ -33,7 +33,7 @@ set tabstop=2
 set tags=./tags,./TAGS,tags,TAGS,~/rute/var/tags
 set termencoding=utf-8
 set viminfo='20,\"50
-set window=49
+set window=48
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
 silent only
@@ -42,8 +42,8 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +127 freechat.rb
-badd +0 main.rb
+badd +1 freechat.rb
+badd +1 main.rb
 silent! argdel *
 edit main.rb
 set splitbelow splitright
@@ -55,8 +55,8 @@ set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 24 + 25) / 50)
-exe '2resize ' . ((&lines * 23 + 25) / 50)
+exe '1resize ' . ((&lines * 12 + 24) / 49)
+exe '2resize ' . ((&lines * 34 + 24) / 49)
 argglobal
 setlocal keymap=
 setlocal noarabic
@@ -153,7 +153,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 77 - ((5 * winheight(0) + 12) / 24)
+let s:l = 77 - ((0 * winheight(0) + 6) / 12)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -257,7 +257,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 136 - ((14 * winheight(0) + 11) / 23)
+let s:l = 136 - ((0 * winheight(0) + 17) / 34)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -265,8 +265,8 @@ normal! zt
 normal! 04l
 wincmd w
 2wincmd w
-exe '1resize ' . ((&lines * 24 + 25) / 50)
-exe '2resize ' . ((&lines * 23 + 25) / 50)
+exe '1resize ' . ((&lines * 12 + 24) / 49)
+exe '2resize ' . ((&lines * 34 + 24) / 49)
 tabnext 1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf
