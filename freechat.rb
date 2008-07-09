@@ -9,7 +9,7 @@ require 'isi/freechatui'
 module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
       :config_dir, :message_handlers_config_file, :bbq_config_file,
-      :verbose_level, :manual, :colour)
+      :verbose_level, :manual, :colour, :hell)
   class Options
     def inspect
       "#<struct #{self.class.name} #{ result = []
@@ -23,6 +23,10 @@ module Main
         result.join(' ')
       }>"
     end
+    alias_method :hell?, :hell
+    alias_method :default_mode_used?, :default_mode_used
+    alias_method :manual?, :manual
+    alias_method :help?, :help
   end
   
   class OptionParser
@@ -45,7 +49,8 @@ module Main
           CONFIG_BBQ_DEFAULT, # bbq_config_file
           VERBOSE_LEVEL_DEFAULT, # verbose_level
           false, # manual
-          false  # colour
+          false, # colour
+          false  # hell
           )
       @option_parser = ::OptionParser::new { |op|
         op.banner = "#{op.program_name
@@ -90,6 +95,12 @@ module Main
             "(default=#{CONFIG_BBQ_DEFAULT})") { |bbq|
           @options.bbq_config_file = bbq
         }
+
+        op.separator ' '
+        op.separator ' '
+        op.on('--hell') {
+          @options.hell = true
+        }
       }
     end # OptionParser#initialize()
     def parse(argv = %w[ ])
@@ -120,24 +131,39 @@ module Main
     end # - OptionParser#check_options()
   end # class Main::OptionParser
 
+  class Hell < Exception
+    def initialize
+      super('Probably the command line arguments make so little sense ' +
+          'that the program reached this completely out-of-mind state. ' +
+          'It\'s like, Shpongled or something. Your mission and you life ' +
+          'end here.')
+    end
+  end
   def main(args)
     op = OptionParser::new
     opts = op.parse(args)
-    if    opts.help   then puts(op) # then exit
-    elsif opts.manual then puts(Manual) # then exit
-    elsif opts.mode == OptionParser::MODE_FREECHAT then # noraml operation
-      if opts.default_mode_used then warn 'Using default --mode=freechat' end
+    if    opts.help?   then puts(op) # then exit
+    elsif opts.manual? then puts(Manual) # then exit
+    elsif !opts.hell? && # hell level cheat
+           opts.mode == OptionParser::MODE_FREECHAT 
+           then # noraml operation
+      warn 'Using default --mode=freechat' if opts.default_mode_used?
       # Starting the bitch... Tough job
+      #stardabitch
       #ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new()
-    elsif opts.mode == OptionParser::MODE_BBQEDIT then # edit bbq
+    elsif !opts.hell? && # hell level cheat
+           opts.mode == OptionParser::MODE_BBQEDIT
+           then # edit bbq
       puts 'starting edit bbq - coming soon'
     else
-      raise Hell #TODO - Create Hell
+      raise Hell
     end
   rescue ::OptionParser::InvalidArgument,
          ::OptionParser::MissingArgument,
          ::OptionParser::InvalidOption   => e
     puts "Argument error: #{e.message}"
+  rescue Hell => e
+    puts "Hell: #{e.message}"
   end # Main#main()
 
   def warn msg
