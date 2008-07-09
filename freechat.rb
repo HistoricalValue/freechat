@@ -10,7 +10,8 @@ require 'isi/freechatui'
 module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
       :config_dir, :message_handlers_config_file, :bbq_config_file,
-      :verbose_level, :manual, :colour, :hell, :ip, :default_ip_used)
+      :verbose_level, :manual, :colour, :hell, :ip, :default_ip_used,
+      :port, :default_port_used)
   class Options
     def initialize(*args)
       super(*args[0..-2])
@@ -32,6 +33,7 @@ module Main
     alias_method :manual?, :manual
     alias_method :help?, :help
     alias_method :default_ip_used?, :default_ip_used
+    alias_method :default_port_used?, :default_port_used
   end
   
   class OptionParser
@@ -45,6 +47,7 @@ module Main
     CONFIG_BBQ_DEFAULT = File.join(CONFIG_DIR_DEFAULT, 'bbq.str')
     VERBOSE_LEVEL_DEFAULT = 0
     IP_DEFAULT = '0.0.0.0'
+    PORT_DEFAULT = 64246
     def initialize(nargs = {})
       @options = Options::new(
           false                          , # help
@@ -59,6 +62,8 @@ module Main
           false                          , # hell
           nil                            , # ip/interface to bind to
           false                          , # default_ip_used
+          nil                            , # port to bind to
+          false                          , # default_port_used
           nil
           )
       @option_parser = ::OptionParser::new { |op|
@@ -79,6 +84,10 @@ module Main
         op.on('--ip=IP', 'IP/Local interface to bind to',
             "(default=#{IP_DEFAULT})") { |ip|
           @options.ip = ip
+        }
+        op.on('--port=port', 'Port to bind to', "(default=#{PORT_DEFAULT})"
+            ) { |port|
+          @options.port = port
         }
         op.on('--[no-]colour', 'Switch colours on or off') { |colour|
           @options.colour = colour
@@ -141,6 +150,11 @@ module Main
         @options.ip = IP_DEFAULT
         @options.default_ip_used = true
       end
+      # if no bind port is specified, assign default
+      unless @options.port
+        @options.port = PORT_DEFAULT
+        @options.default_port_used = true
+      end
       # transform all paths to Pathnames
       for member in [:config_dir, :message_handlers_config_file,
           :bbq_config_file] do
@@ -170,8 +184,10 @@ module Main
            opts.mode == OptionParser::MODE_FREECHAT 
            then # noraml operation
       note 'Using default --mode=freechat' if opts.default_mode_used?
-      warn "Using default binding interface (IP=#{OptionParser::IP_DEFAULT})" \
+      warn "Using default binding interface (IP=#{opts.ip})" \
           if opts.default_ip_used
+      warn "Using default binding port (#{opts.port})" \
+          if opts.default_port_used
       # Starting the bitch... Tough job
       #stardabitch
       #ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new()
