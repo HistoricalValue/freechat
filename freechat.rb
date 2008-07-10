@@ -164,7 +164,7 @@ module Main
     end # - OptionParser#check_options()
   end # class Main::OptionParser
 
-  class Hell < Exception
+  class Hell_t < Exception
     def initialize
       super('Probably the command line arguments make so little sense ' +
           'that the program reached this completely out-of-mind state. ' +
@@ -172,6 +172,7 @@ module Main
           'end here.')
     end
   end
+  Hell = Hell_t::new
   def main(args)
     op = OptionParser::new
     opts = op.parse(args)
