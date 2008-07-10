@@ -173,7 +173,8 @@ module Main
       unless @options.id
         last_id_pathname = @options.config_dir + 'last_id'
         if last_id_pathname.exist? then
-          @options.id = last_id_pathname.read.strip!
+          @options.id = last_id_pathname.read
+          @options.id.strip!
           @options.last_id_used = true
         else 
           @options.no_id = true
@@ -183,10 +184,20 @@ module Main
   end # class Main::OptionParser
 
   class UI
+    include Isi::FreeChatUI::ConsoleUI
   end # class Main::UI
 
   def stardabitch # tough job
-    
+    # cryptic stuff that make no sense - like messing with Minix kernel:
+    # just keep it as it is
+    @ui = UI::new(:id => @options.id, :b => UI::FINEST, :g => UI::FINEST)
+    @ui.start
+    @b = Isi::FreeChat::Protocol::Bitch::Bitch::new(
+        @options.id, @options.ip, @options.port, @ui)
+    @ui.bitch_interpreter = UI::SystemInterpreters::BitchInterpreter::new(
+        @b, @ui.method(:windows))
+    @ui.bitch = @b
+    @b.start
   end # Main::startbitch()
 
   class Hell_t < Exception
@@ -223,6 +234,8 @@ module Main
           if opts.last_id_used
       # Starting the bitch... Tough job
       stardabitch
+      # Wait until ui says we are done
+      until @ui.exit? do sleep 1 end
     elsif !opts.hell? && # hell level cheat
            opts.mode == OptionParser::MODE_BBQEDIT
            then # edit bbq

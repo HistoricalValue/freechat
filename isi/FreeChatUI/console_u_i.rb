@@ -281,7 +281,7 @@ module Isi
       
       def bitch=(bitch)
         raise ArgumentError::new("bitch is something weird: #{bitch
-            }") unless bitch.class <= Bitch
+            }") unless bitch.class <= Isi::FreeChat::Protocol::Bitch::Bitch
         @bitch_mutex.synchronize { @bitch = bitch }
       end
       
@@ -294,6 +294,7 @@ module Isi
       
       private ##################################################################
       def handle_system_message_from who, level, msg
+        #puts "********** WHO=#{who}, LEVEL=#{level}, MSG=#{msg}, PRIVATE_LEVELS=#{@private_levels.inspect}, PRIVATE_LEVEL[WHO]=#{@private_levels[who]}, LEVEL<= PRIVATE_LEVEL[WHO]=#{level <= @private_levels[who]}"
         if level <= @private_levels[who] then
           windows { |windows|
             windows[@system_windows_ids[who]] << msg
