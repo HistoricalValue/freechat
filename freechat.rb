@@ -11,7 +11,7 @@ module Main
   Options = Struct::new(:help, :mode, :default_mode_used,
       :config_dir, :message_handlers_config_file, :bbq_config_file,
       :verbose_level, :manual, :colour, :hell, :ip, :default_ip_used,
-      :port, :default_port_used)
+      :port, :default_port_used, :id, :last_id_used, :no_id)
   class Options
     def initialize(*args)
       super(*args[0..-2])
@@ -34,6 +34,7 @@ module Main
     alias_method :help?, :help
     alias_method :default_ip_used?, :default_ip_used
     alias_method :default_port_used?, :default_port_used
+    alias_method :last_id_used?, :last_id_used
   end
   
   class OptionParser
@@ -64,6 +65,9 @@ module Main
           false                          , # default_ip_used
           nil                            , # port to bind to
           false                          , # default_port_used
+          nil                            , # id
+          false                          , # last_id_used
+          false                          , # no_id
           nil
           )
       @option_parser = ::OptionParser::new { |op|
@@ -88,6 +92,10 @@ module Main
         op.on('--port=port', 'Port to bind to '+"(default=#{PORT_DEFAULT})"
             ) { |port|
           @options.port = port
+        }
+        op.on('--id=ID', 'Self id (default=[last id used successfully)'
+            ) { |id|
+          @options.id = id
         }
         op.on('--[no-]colour', 'Switch colours on or off') { |colour|
           @options.colour = colour
@@ -161,12 +169,30 @@ module Main
           :bbq_config_file] do
         @options[member] = Pathname(@options[member])
       end
+      # if no id is given, try to load last successfully used
+      unless @options.id
+        last_id_pathname = @options.config_dir + 'last_id'
+        if last_id_pathname.exist? then
+          @options.id = last_id_pathname.read.strip!
+          @options.last_id_used = true
+        else 
+          @options.no_id = true
+        end
+      end
     end # - OptionParser#check_options()
   end # class Main::OptionParser
 
+  class UI
+  end # class Main::UI
+
+  def stardabitch # tough job
+    
+  end # Main::startbitch()
+
   class Hell_t < Exception
-    def initialize
-      super('Probably the command line arguments make so little sense ' +
+    def initialize(msg = nil)
+      super(msg ||
+          'Probably the command line arguments make so little sense ' +
           'that the program reached this completely out-of-mind state. ' +
           'It\'s like, Shpongled or something. Your mission and you life ' +
           'end here.')
@@ -182,6 +208,9 @@ module Main
       puts "(manual page, char_len=#{Manual.length}, byte_len=#{
           Manual.bytesize}. To view without colours try --no-colour)"
       puts(Manual) # then exit
+    elsif opts.no_id
+      raise Hell_t::new('No --id given and no successfully used last ' +
+          'id found')
     elsif !opts.hell? && # hell level cheat
            opts.mode == OptionParser::MODE_FREECHAT 
            then # noraml operation
@@ -190,9 +219,10 @@ module Main
           if opts.default_ip_used
       warn "Using default binding port (#{opts.port})" \
           if opts.default_port_used
+      note "Using last successfully used id: #{opts.id}" \
+          if opts.last_id_used
       # Starting the bitch... Tough job
-      #stardabitch
-      #ui = Class::new {include Isi::FreeChatUI::ConsoleUI}::new()
+      stardabitch
     elsif !opts.hell? && # hell level cheat
            opts.mode == OptionParser::MODE_BBQEDIT
            then # edit bbq
@@ -204,7 +234,7 @@ module Main
          ::OptionParser::MissingArgument,
          ::OptionParser::InvalidOption   => e
     puts "Argument error: #{e.message}"
-  rescue Hell => e
+  rescue Hell_t => e
     puts "Hell: #{e.message}"
   end # Main#main()
 
@@ -278,10 +308,21 @@ This launcher can start two different things:
         will accept connections from any interface.' else '.' end}
 
    #{thl tblue '--port'}=#{tudl 'PORT'}
-      - Specifies the #{tudl 'PORT'} to which #{thl 'freechat'} will bind a listening port to
+      #{thl '-'} Specifies the #{tudl 'PORT'} to which #{thl 'freechat'} will bind a listening port to
         in order to accept connections from other clients. The default
         port (which will be used if no port is specified) is #{
         tudl OptionParser::PORT_DEFAULT}.
+
+   #{thl tblue '--id'}=#{tudl 'ID'}
+      #{thl '-'} Specifies the #{tudl 'ID'} of this client. This is the #{tudl 'ID'} according to which
+        this client will be introduced to others when making a connection
+        and also the #{tudl 'ID'} according to which other clients will identify this
+        one.
+      #{thl '-'} The given #{tudl 'ID'} should exist in the existing BuddyBook, despite the
+        fact that its #{tudl 'IP'} and #{tudl 'port'} will not be used. Instead of the #{tudl 'IP'} and
+        #{tudl 'port'} specified in the buddy book store, the one specified as
+        command line arguments (or their default values) will be used
+        instead. See #{thl tblue '--ip'}, #{thl tblue '--port'} and #{thl tblue '--config-bbq'}.
 
    #{thl tblue '--config-dir'}=#{tudl 'DIR'}
       #{thl '-'} Specifies the configuration directory. The default is deduced by the
