@@ -7,11 +7,14 @@ module Isi
         class Bitch
           require 'pathname'
           include Isi::FreeChat, Isi::FreeChat::Protocol::MessageCentre,
-              Isi::FreeChat::Protocol::MessageCentre::MessageTypes
+              Isi::FreeChat::Protocol::MessageCentre::MessageTypes,
+              Isi::FreeChat::PostOffice
           
           DefaultSettingsPath = Pathname(ENV['HOME']) + '.config' + 'freechat'
           
           def initialize my_id,
+              my_ip = nil,
+              my_port = nil,
               ui = Class::new { include Isi::FreeChat::FreeChatUI }::new,
               settings_path = DefaultSettingsPath
             @ui = ui
@@ -31,8 +34,12 @@ module Isi
             # Post office
             raise("Myself \"%s\" does not have an entry in BBQ. BBQ: #{
                 @bbq}" % @id) if (@my_bbq_entry = @bbq[@id]).nil?
+            my_address = (if my_ip && my_port
+                then Address::new(my_ip, my_port)
+                else @my_bbq_entry.addresses.first
+                end)
             @po = Isi::FreeChat::PostOffice::PostOffice::new(
-                @my_bbq_entry.addresses.first,
+                my_address,
                 self)
             @ui.b(FreeChatUI::FINER, 'Created post office')
             # Linker
