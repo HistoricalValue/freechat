@@ -175,7 +175,7 @@ module Main
   Hell = Hell_t::new
   def main(args)
     op = OptionParser::new
-    opts = op.parse(args)
+    @options = opts = op.parse(args)
     if    opts.help?   then
       puts(op) # then exit
     elsif opts.manual? then
@@ -221,22 +221,22 @@ module Main
     TE + control.to_s + TEe
   end # Main#tesc()
   def self.thl(text) # highlight text
-    tesc(1) + text + tesc(22)
+    tesc(1) + text.to_s + tesc(22)
   end
   def self.tudl(text) # underline text
-    tesc(4) + text + tesc(24)
+    tesc(4) + text.to_s + tesc(24)
   end
   def self.tgreen(text) # foreground to green
-    tesc(32) + text + tesc(39)
+    tesc(32) + text.to_s + tesc(39)
   end
   def self.tblue(text) # foreground to blue
-    tesc(34) + text + tesc(39)
+    tesc(34) + text.to_s + tesc(39)
   end
   def self.tyellow(text) # foreground to yellow
-    tesc(33) + text + tesc(39)
+    tesc(33) + text.to_s + tesc(39)
   end
   def self.tred(text) # foreground to red
-    tesc(31) + text + tesc(39)
+    tesc(31) + text.to_s + tesc(39)
   end
 Manual = <<EOS
 #{thl tyellow 'General info'}
@@ -276,6 +276,12 @@ This launcher can start two different things:
         is listening for incoming connections from other clients.
       #{thl '-'} WARNING: If an #{tudl 'IP'} is not specified then the default is #{tudl OptionParser::IP_DEFAULT}#{if OptionParser::IP_DEFAULT == '0.0.0.0' then ', which
         will accept connections from any interface.' else '.' end}
+
+   #{thl tblue '--port'}=#{tudl 'PORT'}
+      - Specifies the #{tudl 'PORT'} to which #{thl 'freechat'} will bind a listening port to
+        in order to accept connections from other clients. The default
+        port (which will be used if no port is specified) is #{
+        tudl OptionParser::PORT_DEFAULT}.
 
    #{thl tblue '--config-dir'}=#{tudl 'DIR'}
       #{thl '-'} Specifies the configuration directory. The default is deduced by the
