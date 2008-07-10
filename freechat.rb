@@ -249,6 +249,9 @@ module Main
     puts "Argument error: #{e.message}"
   rescue Hell_t => e
     puts "Hell: #{e.message}"
+  rescue Exception => e
+    puts "#{e.class} :: #{e}"
+    puts e.backtrace.map {|s| "    #{s}" }.join("\n")
   end # Main#main()
 
   def note msg
