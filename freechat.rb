@@ -74,25 +74,25 @@ module Main
         op.separator 'General options'
         op.on("--mode=MODE", '-m',
             'Select operation mode (' +
-                "default=#{MODE_VALUES.at(MODE_DEFAULT)})",
-            "{#{MODE_VALUES.join '|'}}", MODE_VALUES) { |mode|
+                "default=#{MODE_VALUES.at(MODE_DEFAULT)}) {#{
+                    MODE_VALUES.join '|'}}", MODE_VALUES) { |mode|
           raise ArgumentError::new('no argument for --mode') unless mode
           raise ArgumentError::new("Invalid mode argument: #{mode}") unless
               (index = MODE_VALUES.index(mode))
           @options.mode = index
         }
-        op.on('--ip=IP', 'IP/Local interface to bind to',
+        op.on('--ip=IP', 'IP/Local interface to bind to ' +
             "(default=#{IP_DEFAULT})") { |ip|
           @options.ip = ip
         }
-        op.on('--port=port', 'Port to bind to', "(default=#{PORT_DEFAULT})"
+        op.on('--port=port', 'Port to bind to '+"(default=#{PORT_DEFAULT})"
             ) { |port|
           @options.port = port
         }
         op.on('--[no-]colour', 'Switch colours on or off') { |colour|
           @options.colour = colour
         }
-        op.on('--config-dir=DIR', 'Specify the root dir of config files',
+        op.on('--config-dir=DIR', 'Specify the root dir of config files ' +
             "(default=#{CONFIG_DIR_DEFAULT})") { |config_dir|
           @options.config_dir = config_dir
         }
@@ -102,18 +102,19 @@ module Main
         op.on('--[no-]manual', 'Show a complete manual and exit') { |m|
           @options.manual = m
         }
-        op.on('--verbose=[LEVEL]', '-v', 'Set verbosity level', Integer) { |v|
+        op.on('--verbose=[LEVEL]', '-v', 'Set verbosity level',
+            Integer) { |v|
           @options.verbose_level = if v then v else 1 end
         }
 
         op.separator ' '
         op.separator 'Options for fine tuning of configuration files'
         op.on('--config-mh=PATH',
-            'Specify the message handlers config file',
+            'Specify the message handlers config file ' +
             "(default=#{CONFIG_MESSAGE_HANDLERS_DEFAULT})") { |mhcf|
           @options.message_handlers_config_file = mhcf
         }
-        op.on('--config-bbq=PATH', 'Specify the buddy book config file',
+        op.on('--config-bbq=PATH', 'Specify the buddy book config file ' +
             "(default=#{CONFIG_BBQ_DEFAULT})") { |bbq|
           @options.bbq_config_file = bbq
         }
