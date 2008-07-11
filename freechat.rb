@@ -239,8 +239,8 @@ module Main
     elsif !opts.hell? && # hell level cheat
            opts.mode == OptionParser::MODE_BBQEDIT
            then # edit bbq
-      puts 'starting edit bbq - coming soon'
-      Class::new { include BuddyBookEditor }::new('/tmp/bbq').start_interactive
+      Class::new { include BuddyBookEditor }::new('/tmp/bbq').
+          start_interactive
     else
       raise Hell
     end
@@ -442,6 +442,10 @@ module BuddyBookEditor
 
   def operation_delete(id)
     @bbq.delete(id)
+  end
+
+  def operation_help
+    puts '#TODO write it'
   end
 
   def operation_add(*args)
