@@ -409,6 +409,12 @@ EOS
 
 end # Main
 
+module BuddyBookEditor
+  def initialize(bbq_file_name)
+    @bbq_path = Pathname(bbq_file_name)
+  end
+end
+
 if __FILE__ == $0 then 
   include Main
   main(ARGV)

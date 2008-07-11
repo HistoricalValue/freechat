@@ -62,6 +62,8 @@ module Isi
                                               out.write0(address.port) end
           end
           out.write0("\x00")
+          out.flush
+          out.close
         end
 
         # Loads a buddy book from a storage file, as stored previously by
