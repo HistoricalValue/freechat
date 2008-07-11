@@ -32,6 +32,11 @@ module Isi
           @entries[entry.id] = entry
         end
         
+        # Deletes the entry that has the given _id_.
+        def delete id
+          @entries.delete(id)
+        end
+        
         # Yields to the given block, passing BID and BuddyEntry as arguments.
         def each(&block)
           @entries.each(&block)
