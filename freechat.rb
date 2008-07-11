@@ -240,6 +240,7 @@ module Main
            opts.mode == OptionParser::MODE_BBQEDIT
            then # edit bbq
       puts 'starting edit bbq - coming soon'
+      Class::new { include BuddyBookEditor }::new('/tmp/bbq').start_interactive
     else
       raise Hell
     end
@@ -412,6 +413,47 @@ end # Main
 module BuddyBookEditor
   def initialize(bbq_file_name)
     @bbq_path = Pathname(bbq_file_name)
+    @bbq = Isi::FreeChat::BuddyBook::BuddyBook::new
+    @bbq.load_from_file(@bbq_path.to_path)
+    operation_method_regex = /^operation_\w+$/
+    (@operations = self.public_methods.select { |meth| 
+      meth =~ operation_method_regex
+    }).map! { |meth| 
+      (name = meth.to_s).sub!(/^operation_(\w+)$/, '\1')
+      name.gsub!('_', ' ')
+      {:name => name, :op => self.public_method(meth)}
+    }
+    @exit = false
+  end
+
+  def operation_list_all
+    for id, entry in @bbq do
+      puts entry
+    end
+  end
+
+  def operation_exit
+    @exit = true
+  end
+
+  def start_interactive
+    loop {
+      i = -1
+      printed_stuff = @operations.map { |operation|
+        i += 1
+        {:index => i, :index_str => i.to_s, :op => operation[:op],
+            :op_str => operation[:name]}
+      }
+      max_index_len = printed_stuff.map{|stuff|stuff[:index_str].length}.max
+      for stuff in printed_stuff
+        puts('%*s :: %s'%[max_index_len, stuff[:index_str], stuff[:op_str]])
+      end
+      print 'Select operation: '
+      (selection = STDIN.gets).strip!
+      operation = @operations.at(selection.to_i)[:op]
+      operation.call
+      break if @exit
+    }
   end
 end
 
