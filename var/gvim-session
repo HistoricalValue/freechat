@@ -33,7 +33,7 @@ set tabstop=2
 set tags=./tags,./TAGS,tags,TAGS,~/rute/var/tags
 set termencoding=utf-8
 set viminfo='20,\"50
-set window=48
+set window=49
 let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
 silent only
@@ -42,21 +42,17 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
-badd +1 freechat.rb
-badd +1 main.rb
+badd +308 freechat.rb
+badd +97 main.rb
+badd +76 isi/FreeChat/Protocol/Bitch/bitch.rb
+badd +219 isi/FreeChatUI/console_u_i.rb
 silent! argdel *
-edit main.rb
+edit freechat.rb
 set splitbelow splitright
-wincmd _ | wincmd |
-split
-1wincmd k
-wincmd w
 set nosplitbelow
 set nosplitright
 wincmd t
 set winheight=1 winwidth=1
-exe '1resize ' . ((&lines * 12 + 24) / 49)
-exe '2resize ' . ((&lines * 34 + 24) / 49)
 argglobal
 setlocal keymap=
 setlocal noarabic
@@ -77,7 +73,7 @@ setlocal completefunc=
 setlocal nocopyindent
 setlocal nocursorcolumn
 setlocal nocursorline
-setlocal define=
+setlocal define=^\\s*#\\s*define
 setlocal dictionary=
 setlocal nodiff
 setlocal equalprg=
@@ -101,7 +97,7 @@ setlocal formatoptions=croql
 setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
 setlocal grepprg=
 setlocal iminsert=0
-setlocal imsearch=2
+setlocal imsearch=0
 setlocal include=^\\s*\\<\\(load\\|w*require\\)\\>
 setlocal includeexpr=substitute(substitute(v:fname,'::','/','g'),'$','.rb','')
 setlocal indentexpr=
@@ -153,120 +149,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 77 - ((0 * winheight(0) + 6) / 12)
+let s:l = 253 - ((15 * winheight(0) + 24) / 49)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-77
-normal! 0
-wincmd w
-argglobal
-edit freechat.rb
-setlocal keymap=
-setlocal noarabic
-setlocal noautoindent
-setlocal balloonexpr=RubyBalloonexpr()
-setlocal nobinary
-setlocal bufhidden=
-setlocal buflisted
-setlocal buftype=
-setlocal nocindent
-setlocal cinkeys=0{,0},0),:,0#,!^F,o,O,e
-setlocal cinoptions=
-setlocal cinwords=if,else,while,do,for,switch
-setlocal comments=:#
-setlocal commentstring=#\ %s
-setlocal complete=.,w,b,u,t,i
-setlocal completefunc=
-setlocal nocopyindent
-setlocal nocursorcolumn
-setlocal nocursorline
-setlocal define=
-setlocal dictionary=
-setlocal nodiff
-setlocal equalprg=
-setlocal errorformat=
-setlocal expandtab
-if &filetype != 'ruby'
-setlocal filetype=ruby
-endif
-setlocal foldcolumn=0
-setlocal foldenable
-setlocal foldexpr=0
-setlocal foldignore=#
-setlocal foldlevel=0
-setlocal foldmarker={{{,}}}
-setlocal foldmethod=manual
-setlocal foldminlines=1
-setlocal foldnestmax=20
-setlocal foldtext=foldtext()
-setlocal formatexpr=
-setlocal formatoptions=croql
-setlocal formatlistpat=^\\s*\\d\\+[\\]:.)}\\t\ ]\\s*
-setlocal grepprg=
-setlocal iminsert=0
-setlocal imsearch=2
-setlocal include=^\\s*\\<\\(load\\|w*require\\)\\>
-setlocal includeexpr=substitute(substitute(v:fname,'::','/','g'),'$','.rb','')
-setlocal indentexpr=
-setlocal indentkeys=0{,0},:,0#,!^F,o,O,e
-setlocal noinfercase
-setlocal iskeyword=@,48-57,_,192-255
-setlocal keywordprg=ri
-setlocal nolinebreak
-setlocal nolisp
-setlocal nolist
-setlocal makeprg=
-setlocal matchpairs=(:),{:},[:]
-setlocal nomodeline
-setlocal modifiable
-setlocal nrformats=octal,hex
-set number
-setlocal number
-setlocal numberwidth=4
-setlocal omnifunc=rubycomplete#Complete
-setlocal path=.,~/rute/local/ruby//lib/ruby/site_ruby/1.8,~/rute/local/ruby//lib/ruby/site_ruby/1.8/i686-linux,~/rute/local/ruby//lib/ruby/site_ruby,~/rute/local/ruby//lib/ruby/1.8,~/rute/local/ruby//lib/ruby/1.8/i686-linux,,~/rute/local/ruby//lib/ruby/gems/1.8/gems/actionmailer-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/actionpack-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/activerecord-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/activeresource-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/activesupport-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/rails-2.1.0/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/rake-0.8.1/lib,~/rute/local/ruby//lib/ruby/gems/1.8/gems/sqlite-2.0.1/lib
-setlocal nopreserveindent
-setlocal nopreviewwindow
-setlocal quoteescape=\\
-setlocal noreadonly
-setlocal norightleft
-setlocal rightleftcmd=search
-setlocal noscrollbind
-setlocal shiftwidth=2
-setlocal noshortname
-setlocal smartindent
-setlocal softtabstop=0
-setlocal nospell
-setlocal spellcapcheck=[.?!]\\_[\\])'\"\	\ ]\\+
-setlocal spellfile=
-setlocal spelllang=en
-setlocal statusline=
-setlocal suffixesadd=.rb
-setlocal swapfile
-setlocal synmaxcol=3000
-if &syntax != 'ruby'
-setlocal syntax=ruby
-endif
-setlocal tabstop=2
-setlocal tags=
-setlocal textwidth=0
-setlocal thesaurus=
-setlocal nowinfixheight
-setlocal nowinfixwidth
-setlocal wrap
-setlocal wrapmargin=0
-silent! normal! zE
-let s:l = 136 - ((0 * winheight(0) + 17) / 34)
-if s:l < 1 | let s:l = 1 | endif
-exe s:l
-normal! zt
-136
+253
 normal! 04l
-wincmd w
-2wincmd w
-exe '1resize ' . ((&lines * 12 + 24) / 49)
-exe '2resize ' . ((&lines * 34 + 24) / 49)
 tabnext 1
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf

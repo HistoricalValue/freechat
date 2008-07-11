@@ -70,3 +70,10 @@ end
 def ifcuidcr
 	Isi::FreeChatUI::ConsoleUI::DefaultCommandRegex
 end
+
+def bbqtest
+  @bbq = Isi::FreeChat::BuddyBook::BuddyBook::new
+  @bbq.load_from_file('/home/isilando/.config/freechat/bbq.str')
+  @bbq.store_to_file('/tmp/bbq')
+end
+
