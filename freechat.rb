@@ -436,6 +436,29 @@ module BuddyBookEditor
     @exit = true
   end
 
+  def operation_echo_arguments(*args)
+    p args
+  end
+
+  def operation_delete(id)
+    @bbq.delete(id)
+  end
+
+  def operation_add(*args)
+    if    args.length < 1 then puts 'Too few arguments. Check out help'
+    elsif args.length % 2 == 0 then puts 'Addresses must be in IP PORT ' +
+        'pairs. Check out help'
+    else
+      id = args.shift
+      addresses = []
+      while !args.empty? do
+        ip = args.shift; port = args.shift
+        addresses << Isi::FreeChat::PostOffice::Address::new(ip, port)
+      end
+      @bbq << Isi::FreeChat::BuddyBook::BuddyEntry::new(id, addresses)
+    end
+  end
+
   def start_interactive
     loop {
       i = -1
@@ -449,9 +472,12 @@ module BuddyBookEditor
         puts('%*s :: %s'%[max_index_len, stuff[:index_str], stuff[:op_str]])
       end
       print 'Select operation: '
-      (selection = STDIN.gets).strip!
-      operation = @operations.at(selection.to_i)[:op]
-      operation.call
+
+      # read user's wish
+      (user_line = STDIN.gets).strip!
+      command = user_line.split(/\s+/)
+      operation = @operations.at(command.first.to_i)[:op]
+      operation.call(*command[1..-1])
       break if @exit
     }
   end
